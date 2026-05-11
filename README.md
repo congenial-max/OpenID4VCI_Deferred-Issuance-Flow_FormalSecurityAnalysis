@@ -1,4 +1,4 @@
-# OpenID4VCI_SecurityAnalysis
+# OpenID4VCI_Deferred-Issuance-Flow_FormalSecurityAnalysis
 Tamarin formal analysis of the OpenID4VCI 1.0 deferred-issuance flow. Verifies a credential-binding substitution attack against the published spec under device-compromise, evaluates two failed fix attempts, and verifies a third fix (RFC 7800 cnf-bound holder key in the access token) that closes the attack.
 
 
@@ -10,7 +10,7 @@ mechanism each one introduces:
 
 | Config | `#ifdef` macro | Mechanism |
 |---|---|---|
-| **V0 / baseline** | -DVULNERABLE` | the published spec, no fix |
+| **V0 / baseline** | `-DVULNERABLE` | the published spec, no fix |
 | **V1 / bindSig-only** | `-DFIXED` | Wallet commits to a binding key `pkB` at credential-request time; signs `(tid, h(pkE_new))` with `skB` at deferred time |
 | **V2 / pkB-in-keyProof** | `-DFIXED_V2` | V1 plus binding `h(pkB)` into the keyProof under `skH` |
 | **V3 / AT-bound-pkH** | `-DFIXED_V3` | AS issues access token carrying `pk(skH)` as an [RFC 7800] `cnf` claim; CI verifies request `pkH` against AT-bound `pkH` |

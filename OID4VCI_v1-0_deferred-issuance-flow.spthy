@@ -1,0 +1,1469 @@
+/*
+==============================================================================
+  OID4VCI Final 1.0
+  Deferred-Issuance Holder-Key Substitution — Tamarin Prover Model
+==============================================================================
+
+  Tool:            Tamarin Prover (>= 1.10.0)
+  Spec analysed:   OpenID for Verifiable Credential Issuance 1.0 (FINAL)
+                   T. Lodderstedt, K. Yasuda, T. Looker, P. Bastian
+                   16 September 2025
+
+  Companion:       Security & Trust in the OpenID4VC Ecosystem (Mar 2024)
+                   D. Fett, T. Lodderstedt
+                   §6.2 (P-10), §6.7 (P-50)
+
+
+==============================================================================
+  FOUR CONFIGURATIONS — pass exactly one -D flag at runtime
+==============================================================================
+
+  -DVULNERABLE  spec-as-written
+  -DFIXED       v1 fix (tx-id binding signature) — closes C2, scoped P-10
+  -DFIXED_V2    v2 attempt (keyProof signs over h(pkB)) — DOES NOT close C2'
+                  Retained as a NEGATIVE RESULT in the paper: shows that
+                  augmenting the keyProof payload cannot close C2' because
+                  the adversary already holds the holder signing key.
+  -DFIXED_V3    v3 fix (v1 + AT-bound pkH, RFC 7800 cnf style)
+                  - Wallet generates skH/pkH BEFORE requesting AT
+                  - AT carries pkH as a confirmation method
+                  - Issuer verifies that the keyProof's pkH equals the
+                    AT-bound pkH
+                  Closes both C2 and C2'; P-10 verifies WITHOUT scoping.
+
+
+==============================================================================
+  THE DEFERRED-ISSUANCE HOLDER-KEY SUBSTITUTION ATTACK* (recap)
+
+  (* This attack name will be referred as -C2-)
+==============================================================================
+
+  Final 1.0 §9.2 line 710: the credential_response_encryption MAY differ
+  from the original Credential Request and the Issuer MUST use the new one.
+  An attacker holding (tid, AT, skDPoP) can submit a deferred request with
+  their own response-encryption key and decrypt the issued credential.
+  P-50 holds (cred bound to honest pkH); P-10 broken.
+
+
+==============================================================================
+  THE C2' RESIDUAL (recap)
+==============================================================================
+
+  Even with v1's tx-id binding signature, the wallet's pkB sits inside the
+  JWE-encrypted Credential Request unauthenticated to the wallet's identity.
+  An adversary holding (AT_A, skDPoP_A) from wallet A AND skH_B from a
+  separate wallet B can construct a credential request pairing pkH_B with
+  an adversary-chosen pkB_adv, then complete the deferred flow with their
+  own bind signature. The credential is bound to pkH_B (an already-
+  compromised identity) but issued under A's authorization. This is a
+  fresh-issuance authorization break, not a credential-confidentiality
+  break of an honest wallet, but it has security implications including
+  rate-limit bypass and post-compromise PII re-issuance.
+
+
+==============================================================================
+  WHY v2 DID NOT WORK — recorded for the paper's negative-result subsection
+==============================================================================
+
+  v2 attempted to bind pkB into the keyProof payload:
+       keyProofPayloadV2 = <'openid4vci-proof+jwt-v2', 'ES256',
+                            pkH, h(pkB), CI, iat>
+  Tamarin falsified both c2prime_attack_blocked_v2 and the unscoped
+  P10_credential_secrecy_fixed_v2. The reason is structural: C2' presumes
+  adversary possession of the holder signing key skH_B, so any signature
+  constructible by the wallet (over any payload, with any embedded fields)
+  is also constructible by the adversary. No augmentation of the keyProof
+  payload can close C2' under this threat model. The fix must come from
+  outside the wallet's signing-key space.
+
+
+==============================================================================
+  PROPOSED FIX v3 — AT-bound holder key (RFC 7800 cnf-style)
+==============================================================================
+
+  The Authorization Server learns the wallet's holder public key pkH at
+  the token-request stage (alongside the DPoP key pkDPoP) and embeds it
+  in the issued Access Token as a confirmation method. The AT shape
+  becomes:
+       AT = aToken(~atSecret, pkDPoP, pkH, CI, AS)
+  where pkH is the wallet's intended holder key for the credential.
+
+  At the Credential Endpoint, the Credential Issuer extracts pkH from the
+  AT and verifies that the keyProof's pkH equals this AT-bound pkH. An
+  adversary submitting a credential request under leaked (AT_A, skDPoP_A)
+  is forced to use pkH_A. To produce a keyProof signed over (pkH_A, ...)
+  they need skH_A — which (under NoHolderKeyLeak(A)) they do not have.
+  C2' is structurally closed.
+
+  Suggested IETF spec text v3:
+     "The Token Endpoint MUST accept a `cnf` parameter binding the
+      Access Token to the wallet's holder public key. The Authorization
+      Server MUST embed this `cnf` claim in the issued Access Token.
+      The Credential Issuer MUST verify that the `pkH` extracted from
+      the keyProof matches the `cnf` claim of the presented AT."
+
+
+==============================================================================
+  ABSTRACTIONS — unchanged from v1/v2
+==============================================================================
+
+  A1. AS flow: replaced by Wallet_Get_AT. In v3 this rule additionally
+      generates skH/pkH and embeds pkH in the AT.
+  A2. Metadata: pkR_CI via !CI_ReqEncPk.
+  A3. TLS: replaced by In/Out (over-approximation).
+  A4. Wallet attestation, replay defences: not relevant to C2/C2'.
+  A5. Credential format: single signature over (CI, pkH, 'PII-dataset').
+
+
+==============================================================================
+  EXPECTED VERDICTS
+==============================================================================
+
+  -DVULNERABLE     c2_attack_witness                 verified
+                   P10_credential_secrecy_vuln       falsified
+
+  -DFIXED   (v1)   c2prime_attack_witness_fixed      verified
+                   P10_credential_secrecy_fixed      verified (scoped)
+
+  -DFIXED_V2 (v2)  c2prime_attack_blocked_v2         falsified  ★ negative
+                   P10_credential_secrecy_fixed_v2   falsified  ★ result ★
+
+  -DFIXED_V3 (v3)  c2prime_attack_blocked_v3         verified  ★ closes C2'
+                   P10_credential_secrecy_fixed_v3   verified  ★ unscoped
+
+
+==============================================================================
+  HOW TO RUN
+==============================================================================
+
+  tamarin-prover --prove -DVULNERABLE --auto-sources OID4VCI_C2_v3.spthy ...
+  tamarin-prover --prove -DFIXED      --auto-sources OID4VCI_C2_v3.spthy ...
+  tamarin-prover --prove -DFIXED_V2   --auto-sources OID4VCI_C2_v3.spthy ...
+  tamarin-prover --prove -DFIXED_V3   --auto-sources OID4VCI_C2_v3.spthy ...
+
+
+==============================================================================
+*/
+
+theory OID4VCI_C2 begin
+
+builtins: signing, hashing
+
+
+/*
+============================================================================
+  PROBABILISTIC PUBLIC-KEY ENCRYPTION (JWE)
+============================================================================
+*/
+functions:    penc/3, pdec/2
+equations:    pdec(penc(m, pk(k), r), k) = m
+
+
+/*
+============================================================================
+  OPAQUE ACCESS TOKENS
+============================================================================
+  v1/v2: aToken/4   = aToken(~atSecret, pkDPoP, CI, AS)
+  v3:    aTokenV3/5 = aTokenV3(~atSecret, pkDPoP, pkH, CI, AS)
+                                                 ^^^^ cnf-bound holder key
+  Both private; adversary cannot construct without an explicit Reveal.
+  Two distinct functions so the FIXED/FIXED_V2 branches keep their
+  4-argument AT shape unchanged.
+*/
+functions:    aToken/4   [private]
+functions:    aTokenV3/5 [private]
+
+
+// ============================================================================
+//                                MACROS
+// ============================================================================
+
+macros:
+
+  // -------- DPoP proof (RFC 9449), audience-tagged --------
+  dpopPayloadCred(CI, pkDPoP, jti, AT)
+        = <'dpop+jwt', CI, 'POST', 'credential', pkDPoP, jti, AT>,
+  dpopPayloadDef(CI, pkDPoP, jti, AT)
+        = <'dpop+jwt', CI, 'POST', 'deferred',   pkDPoP, jti, AT>,
+  dpopProofCred(CI, pkDPoP, jti, AT, skDPoP)
+        = sign(dpopPayloadCred(CI, pkDPoP, jti, AT), skDPoP),
+  dpopProofDef(CI, pkDPoP, jti, AT, skDPoP)
+        = sign(dpopPayloadDef(CI, pkDPoP, jti, AT), skDPoP),
+
+  // -------- Key Proof JWT v1 (used by VULNERABLE, FIXED, FIXED_V3) --------
+  keyProofPayload(CI, pkH, iat)
+        = <'openid4vci-proof+jwt', 'ES256', pkH, CI, iat>,
+  keyProofJWT(CI, pkH, iat, skH)
+        = sign(keyProofPayload(CI, pkH, iat), skH),
+
+  // -------- Key Proof JWT v2 (used by FIXED_V2 only) --------
+  // Negative-result fix attempt; does NOT close C2'.
+  keyProofPayloadV2(CI, pkH, pkB, iat)
+        = <'openid4vci-proof+jwt-v2', 'ES256', pkH, h(pkB), CI, iat>,
+  keyProofJWTV2(CI, pkH, pkB, iat, skH)
+        = sign(keyProofPayloadV2(CI, pkH, pkB, iat), skH),
+
+  // -------- Issued credential --------
+  credPayload(CI, pkH)
+        = <'credential', CI, 'PII-dataset', pkH>,
+  credentialSig(CI, pkH, ltkCI)
+        = sign(credPayload(CI, pkH), ltkCI),
+
+  // -------- Tx-Id binding signature (FIXED, FIXED_V2, FIXED_V3) --------
+  txIdBindPayload(CI, tid, pkE_new)
+        = <'oid4vci-tid-bind', CI, tid, h(pkE_new)>,
+  txIdBindSig(CI, tid, pkE_new, skB)
+        = sign(txIdBindPayload(CI, tid, pkE_new), skB)
+
+
+// ============================================================================
+//                              PREDICATES
+// ============================================================================
+
+predicates:
+  HonestCI(CI)            <=> not (Ex #r. Reveal_CI(CI) @ r),
+  HonestCIReqEnc(CI)      <=> not (Ex #r. Reveal_CI_ReqEncKey(CI) @ r),
+  NoHolderKeyLeak(Wid)    <=> not (Ex p #r. Reveal_HolderKey(Wid, p) @ r),
+  NoEncKeyLeak(Wid)       <=> not (Ex p #r. Reveal_WalletEncKey(Wid, p) @ r),
+  NoBindKeyLeak(Wid)      <=> not (Ex p #r. Reveal_WalletBindKey(Wid, p) @ r),
+  NoStoredATLeak(Wid, CI) <=> not (Ex at #r. Reveal_StoredAT(Wid, CI, at) @ r),
+  NoDPoPKeyLeak(Wid)      <=> not (Ex p #r. Reveal_DPoPKey(Wid, p) @ r),
+  NoTxIdLeak(Wid, CI)     <=> not (Ex t #r. Reveal_TxId(Wid, CI, t) @ r)
+
+
+// ============================================================================
+//                              RESTRICTIONS
+// ============================================================================
+
+restriction Eq:
+  "All x y #i. Eq(x,y) @ i ==> x = y"
+
+restriction OnlyOnceV:
+  "All x #i #j. OnlyOnceV(x) @ i & OnlyOnceV(x) @ j ==> #i = #j"
+
+restriction UniqueCIKey:
+  "All CI k1 k2 #i #j.
+      CIKey(CI,k1) @ i & CIKey(CI,k2) @ j ==> k1 = k2"
+
+restriction UniqueCIReqEncKey:
+  "All CI k1 k2 #i #j.
+      CIReqEncSk(CI,k1) @ i & CIReqEncSk(CI,k2) @ j ==> k1 = k2"
+
+
+// ============================================================================
+//                            PARTY SETUP
+// ============================================================================
+
+rule Register_CI [color=#fef3c7, role="Setup"]:
+    [ Fr(~ltkCI) ]
+  --[ Register_CI($CI),
+      CIKey($CI, ~ltkCI),
+      OnlyOnceV(<'register-ci', $CI>) ]->
+    [ !Ltk_CI($CI, ~ltkCI),
+      Out(pk(~ltkCI)) ]
+
+rule CI_Publish_RequestEncKey [color=#fef3c7, role="Setup"]:
+    [ Fr(~skR_CI),
+      !Ltk_CI($CI, ~ltkCI) ]
+  --[ CIRequestEncKey($CI, pk(~skR_CI)),
+      CIReqEncSk($CI, ~skR_CI),
+      OnlyOnceV(<'ci-req-enc', $CI>) ]->
+    [ !CI_ReqEncSk($CI, ~skR_CI),
+      !CI_ReqEncPk($CI, pk(~skR_CI)),
+      Out(pk(~skR_CI)) ]
+
+
+// ============================================================================
+//             ABSTRACTED AS FLOW (Wallet_Get_AT)
+// ============================================================================
+
+#ifdef VULNERABLE
+rule Wallet_Get_AT [color=#fef9c3, role="Wallet"]:
+  let
+    pkDPoP = pk(~skDPoP)
+    AT     = aToken(~atSecret, pkDPoP, $CI, $AS)
+  in
+    [ Fr(~sid), Fr(~skDPoP), Fr(~atSecret) ]
+  --[ Wallet_Got_AT($Wid, $CI, ~sid, AT),
+      ATIssued($AS, $CI, $Wid, AT, pkDPoP) ]->
+    [ W_HasAT($Wid, $CI, $AS, ~sid, AT, ~skDPoP, pkDPoP),
+      !Valid_AT($CI, AT, $AS, $Wid, pkDPoP),
+      !StoredDPoPKey($Wid, ~skDPoP, pkDPoP),
+      !StoredAT($Wid, $CI, AT) ]
+#endif
+
+#ifdef FIXED
+rule Wallet_Get_AT [color=#fef9c3, role="Wallet"]:
+  let
+    pkDPoP = pk(~skDPoP)
+    AT     = aToken(~atSecret, pkDPoP, $CI, $AS)
+  in
+    [ Fr(~sid), Fr(~skDPoP), Fr(~atSecret) ]
+  --[ Wallet_Got_AT($Wid, $CI, ~sid, AT),
+      ATIssued($AS, $CI, $Wid, AT, pkDPoP) ]->
+    [ W_HasAT($Wid, $CI, $AS, ~sid, AT, ~skDPoP, pkDPoP),
+      !Valid_AT($CI, AT, $AS, $Wid, pkDPoP),
+      !StoredDPoPKey($Wid, ~skDPoP, pkDPoP),
+      !StoredAT($Wid, $CI, AT) ]
+#endif
+
+#ifdef FIXED_V2
+rule Wallet_Get_AT [color=#fef9c3, role="Wallet"]:
+  let
+    pkDPoP = pk(~skDPoP)
+    AT     = aToken(~atSecret, pkDPoP, $CI, $AS)
+  in
+    [ Fr(~sid), Fr(~skDPoP), Fr(~atSecret) ]
+  --[ Wallet_Got_AT($Wid, $CI, ~sid, AT),
+      ATIssued($AS, $CI, $Wid, AT, pkDPoP) ]->
+    [ W_HasAT($Wid, $CI, $AS, ~sid, AT, ~skDPoP, pkDPoP),
+      !Valid_AT($CI, AT, $AS, $Wid, pkDPoP),
+      !StoredDPoPKey($Wid, ~skDPoP, pkDPoP),
+      !StoredAT($Wid, $CI, AT) ]
+#endif
+
+// ★ V3: AT carries pkH as a confirmation-method binding.
+// The wallet generates skH/pkH at AT-acquisition time. The AS embeds
+// pkH in the AT structure (aTokenV3/5). The Issuer can later extract
+// pkH from the AT and verify it matches the keyProof's pkH.
+#ifdef FIXED_V3
+rule Wallet_Get_AT [color=#fef9c3, role="Wallet"]:
+  let
+    pkDPoP = pk(~skDPoP)
+    pkH    = pk(~skH)
+    AT     = aTokenV3(~atSecret, pkDPoP, pkH, $CI, $AS)   // ★ pkH bound ★
+  in
+    [ Fr(~sid), Fr(~skDPoP), Fr(~atSecret),
+      Fr(~skH) ]                                          // ★ skH at AT time ★
+  --[ Wallet_Got_AT($Wid, $CI, ~sid, AT),
+      ATIssued($AS, $CI, $Wid, AT, pkDPoP),
+      ATBoundToHolder($AS, $CI, $Wid, AT, pkH),           // ★ binding event ★
+      WalletGen_HolderKey($Wid, ~sid, pkH),
+      HolderKeyFresh($Wid, ~skH, pkH) ]->
+    [ W_HasAT_V3($Wid, $CI, $AS, ~sid, AT,
+                 ~skDPoP, pkDPoP,
+                 ~skH, pkH),
+      !Valid_AT_V3($CI, AT, $AS, $Wid, pkDPoP, pkH),
+      !StoredDPoPKey($Wid, ~skDPoP, pkDPoP),
+      !StoredAT($Wid, $CI, AT),
+      !StoredHolderKey($Wid, ~skH, pkH) ]
+#endif
+
+
+// ============================================================================
+//                            REVEAL RULES
+// ============================================================================
+
+rule Reveal_CI_Ltk [color=#fecaca, role="Adv"]:
+    [ !Ltk_CI($CI, ~ltkCI) ] --[ Reveal_CI($CI) ]-> [ Out(~ltkCI) ]
+
+rule Reveal_CI_ReqEncKey_Rule [color=#fecaca, role="Adv"]:
+    [ !CI_ReqEncSk($CI, ~skR) ]
+  --[ Reveal_CI_ReqEncKey($CI) ]->
+    [ Out(~skR) ]
+
+rule Reveal_HolderKey_Rule [color=#fecaca, role="Adv"]:
+    [ !StoredHolderKey($Wid, ~skH, pkH) ]
+  --[ Reveal_HolderKey($Wid, pkH) ]->
+    [ Out(~skH) ]
+
+rule Reveal_WalletEncKey_Rule [color=#fecaca, role="Adv"]:
+    [ !StoredWalletEncKey($Wid, ~skE, pkE) ]
+  --[ Reveal_WalletEncKey($Wid, pkE) ]->
+    [ Out(~skE) ]
+
+rule Reveal_DPoPKey_Rule [color=#fecaca, role="Adv"]:
+    [ !StoredDPoPKey($Wid, ~skDPoP, pkDPoP) ]
+  --[ Reveal_DPoPKey($Wid, pkDPoP) ]->
+    [ Out(~skDPoP) ]
+
+rule Reveal_StoredAT_Rule [color=#fecaca, role="Adv"]:
+    [ !StoredAT($Wid, $CI, AT) ]
+  --[ Reveal_StoredAT($Wid, $CI, AT) ]->
+    [ Out(AT) ]
+
+rule Reveal_TxId_Rule [color=#fecaca, role="Adv"]:
+    [ !PendingTxId($Wid, $CI, tid) ]
+  --[ Reveal_TxId($Wid, $CI, tid) ]->
+    [ Out(tid) ]
+
+#ifdef FIXED
+rule Reveal_WalletBindKey_Rule [color=#fecaca, role="Adv"]:
+    [ !StoredBindKey($Wid, ~skB, pkB) ]
+  --[ Reveal_WalletBindKey($Wid, pkB) ]->
+    [ Out(~skB) ]
+#endif
+
+#ifdef FIXED_V2
+rule Reveal_WalletBindKey_Rule [color=#fecaca, role="Adv"]:
+    [ !StoredBindKey($Wid, ~skB, pkB) ]
+  --[ Reveal_WalletBindKey($Wid, pkB) ]->
+    [ Out(~skB) ]
+#endif
+
+#ifdef FIXED_V3
+rule Reveal_WalletBindKey_Rule [color=#fecaca, role="Adv"]:
+    [ !StoredBindKey($Wid, ~skB, pkB) ]
+  --[ Reveal_WalletBindKey($Wid, pkB) ]->
+    [ Out(~skB) ]
+#endif
+
+
+// ============================================================================
+//   CREDENTIAL REQUEST (Final §7.2)
+// ============================================================================
+
+#ifdef VULNERABLE
+rule Wallet_Send_Credential_Req [color=#d1fae5, role="Wallet"]:
+  let
+    pkH      = pk(~skH)
+    pkE_W    = pk(~skE_W)
+    keyProof = keyProofJWT($CI, pkH, ~iat, ~skH)
+    dpopPC   = dpopProofCred($CI, pkDPoP, ~jti_c, AT, ~skDPoP)
+    inner    = <'credential-req', AT, dpopPC, pkH, keyProof,
+                'crypt-resp', pkE_W>
+    outer    = <'credential-req-jwe', penc(inner, pkR_CI, ~rEnc)>
+  in
+    [ W_HasAT($Wid, $CI, $AS, ~sid, AT, ~skDPoP, pkDPoP),
+      !CI_ReqEncPk($CI, pkR_CI),
+      Fr(~skH), Fr(~iat), Fr(~jti_c), Fr(~skE_W), Fr(~rEnc) ]
+  --[ Wallet_Sent_Cred_Req($Wid, $CI, ~sid, pkH, AT),
+      WalletGen_HolderKey($Wid, ~sid, pkH),
+      WalletGen_EncKey($Wid, ~sid, pkE_W),
+      HolderKeyFresh($Wid, ~skH, pkH),
+      EncKeyFresh($Wid, ~skE_W, pkE_W) ]->
+    [ W_AwaitingTxId($Wid, $CI, $AS, ~sid, AT,
+                     ~skH, pkH, ~skE_W, pkE_W, ~skDPoP, pkDPoP),
+      !StoredHolderKey($Wid, ~skH, pkH),
+      !StoredWalletEncKey($Wid, ~skE_W, pkE_W),
+      Out(outer) ]
+#endif
+
+#ifdef FIXED
+rule Wallet_Send_Credential_Req [color=#d1fae5, role="Wallet"]:
+  let
+    pkH      = pk(~skH)
+    pkE_W    = pk(~skE_W)
+    pkB      = pk(~skB)
+    keyProof = keyProofJWT($CI, pkH, ~iat, ~skH)
+    dpopPC   = dpopProofCred($CI, pkDPoP, ~jti_c, AT, ~skDPoP)
+    inner    = <'credential-req-fixed', AT, dpopPC, pkH, keyProof,
+                'crypt-resp', pkE_W, 'tid-bind', pkB>
+    outer    = <'credential-req-jwe', penc(inner, pkR_CI, ~rEnc)>
+  in
+    [ W_HasAT($Wid, $CI, $AS, ~sid, AT, ~skDPoP, pkDPoP),
+      !CI_ReqEncPk($CI, pkR_CI),
+      Fr(~skH), Fr(~iat), Fr(~jti_c), Fr(~skE_W), Fr(~rEnc), Fr(~skB) ]
+  --[ Wallet_Sent_Cred_Req($Wid, $CI, ~sid, pkH, AT),
+      Wallet_Sent_Cred_Req_Bind($Wid, $CI, ~sid, pkB),
+      WalletGen_HolderKey($Wid, ~sid, pkH),
+      WalletGen_EncKey($Wid, ~sid, pkE_W),
+      WalletGen_BindKey($Wid, ~sid, pkB),
+      HolderKeyFresh($Wid, ~skH, pkH),
+      EncKeyFresh($Wid, ~skE_W, pkE_W) ]->
+    [ W_AwaitingTxId_FIXED($Wid, $CI, $AS, ~sid, AT,
+                           ~skH, pkH, ~skE_W, pkE_W, ~skB, pkB,
+                           ~skDPoP, pkDPoP),
+      !StoredHolderKey($Wid, ~skH, pkH),
+      !StoredWalletEncKey($Wid, ~skE_W, pkE_W),
+      !StoredBindKey($Wid, ~skB, pkB),
+      Out(outer) ]
+#endif
+
+#ifdef FIXED_V2
+rule Wallet_Send_Credential_Req [color=#d1fae5, role="Wallet"]:
+  let
+    pkH      = pk(~skH)
+    pkE_W    = pk(~skE_W)
+    pkB      = pk(~skB)
+    keyProof = keyProofJWTV2($CI, pkH, pkB, ~iat, ~skH)
+    dpopPC   = dpopProofCred($CI, pkDPoP, ~jti_c, AT, ~skDPoP)
+    inner    = <'credential-req-v2', AT, dpopPC, pkH, keyProof,
+                'crypt-resp', pkE_W, 'tid-bind', pkB>
+    outer    = <'credential-req-jwe', penc(inner, pkR_CI, ~rEnc)>
+  in
+    [ W_HasAT($Wid, $CI, $AS, ~sid, AT, ~skDPoP, pkDPoP),
+      !CI_ReqEncPk($CI, pkR_CI),
+      Fr(~skH), Fr(~iat), Fr(~jti_c), Fr(~skE_W), Fr(~rEnc), Fr(~skB) ]
+  --[ Wallet_Sent_Cred_Req($Wid, $CI, ~sid, pkH, AT),
+      Wallet_Sent_Cred_Req_Bind($Wid, $CI, ~sid, pkB),
+      WalletGen_HolderKey($Wid, ~sid, pkH),
+      WalletGen_EncKey($Wid, ~sid, pkE_W),
+      WalletGen_BindKey($Wid, ~sid, pkB),
+      HolderKeyFresh($Wid, ~skH, pkH),
+      EncKeyFresh($Wid, ~skE_W, pkE_W) ]->
+    [ W_AwaitingTxId_FIXED($Wid, $CI, $AS, ~sid, AT,
+                           ~skH, pkH, ~skE_W, pkE_W, ~skB, pkB,
+                           ~skDPoP, pkDPoP),
+      !StoredHolderKey($Wid, ~skH, pkH),
+      !StoredWalletEncKey($Wid, ~skE_W, pkE_W),
+      !StoredBindKey($Wid, ~skB, pkB),
+      Out(outer) ]
+#endif
+
+// ★ V3: wallet uses the AT-bound holder keypair (~skH/pkH from W_HasAT_V3).
+// No fresh ~skH here — pkH is fixed by the AT.
+#ifdef FIXED_V3
+rule Wallet_Send_Credential_Req [color=#d1fae5, role="Wallet"]:
+  let
+    pkE_W    = pk(~skE_W)
+    pkB      = pk(~skB)
+    keyProof = keyProofJWT($CI, pkH, ~iat, ~skH)        // pkH is AT-bound
+    dpopPC   = dpopProofCred($CI, pkDPoP, ~jti_c, AT, ~skDPoP)
+    inner    = <'credential-req-v3', AT, dpopPC, pkH, keyProof,
+                'crypt-resp', pkE_W, 'tid-bind', pkB>
+    outer    = <'credential-req-jwe', penc(inner, pkR_CI, ~rEnc)>
+  in
+    [ W_HasAT_V3($Wid, $CI, $AS, ~sid, AT,
+                 ~skDPoP, pkDPoP, ~skH, pkH),
+      !CI_ReqEncPk($CI, pkR_CI),
+      Fr(~iat), Fr(~jti_c), Fr(~skE_W), Fr(~rEnc), Fr(~skB) ]
+  --[ Wallet_Sent_Cred_Req($Wid, $CI, ~sid, pkH, AT),
+      Wallet_Sent_Cred_Req_Bind($Wid, $CI, ~sid, pkB),
+      WalletGen_EncKey($Wid, ~sid, pkE_W),
+      WalletGen_BindKey($Wid, ~sid, pkB),
+      EncKeyFresh($Wid, ~skE_W, pkE_W) ]->
+    [ W_AwaitingTxId_V3($Wid, $CI, $AS, ~sid, AT,
+                        ~skH, pkH, ~skE_W, pkE_W, ~skB, pkB,
+                        ~skDPoP, pkDPoP),
+      !StoredWalletEncKey($Wid, ~skE_W, pkE_W),
+      !StoredBindKey($Wid, ~skB, pkB),
+      Out(outer) ]
+#endif
+
+
+// ============================================================================
+//   CREDENTIAL ENDPOINT — DEFERRED ISSUANCE
+// ============================================================================
+
+#ifdef VULNERABLE
+rule CI_Credential_Endpoint_Defer [color=#fef9c3, role="CI"]:
+  let
+    keyProof    = keyProofJWT($CI, pkH, iat, skH_x)
+    dpopPC      = dpopProofCred($CI, pkDPoP, jti_c, AT, skDPoP_x)
+    inner       = <'credential-req', AT, dpopPC, pkH, keyProof,
+                   'crypt-resp', pkE_W>
+    outer       = <'credential-req-jwe', penc(inner, pk(~skR_CI), rEnc)>
+    encResp_202 = penc(<'202-deferred', ~tid_ci>, pkE_W, ~rRespEnc)
+  in
+    [ In(outer),
+      !CI_ReqEncSk($CI, ~skR_CI),
+      !Valid_AT($CI, AT, $AS, $Wid_at, pkDPoP),
+      !Ltk_CI($CI, ~ltkCI),
+      Fr(~tid_ci), Fr(~rRespEnc) ]
+  --[ _restrict( verify(keyProof, keyProofPayload($CI, pkH, iat),
+                        pkH) = true ),
+      _restrict( verify(dpopPC, dpopPayloadCred($CI, pkDPoP, jti_c, AT),
+                        pkDPoP) = true ),
+      OnlyOnceV(<'dpop-jti-cred', jti_c>),
+      OnlyOnceV(<'tid-issued', ~tid_ci>),
+      CI_Issued_TxId($CI, $AS, $Wid_at, ~tid_ci, AT, pkH, pkE_W, pkDPoP) ]->
+    [ !CI_PendingTx_Vuln($CI, ~tid_ci, AT, $AS, $Wid_at, pkDPoP, pkH),
+      !PendingTxId($Wid_at, $CI, ~tid_ci),
+      Out(encResp_202) ]
+#endif
+
+#ifdef FIXED
+rule CI_Credential_Endpoint_Defer [color=#fef9c3, role="CI"]:
+  let
+    keyProof    = keyProofJWT($CI, pkH, iat, skH_x)
+    dpopPC      = dpopProofCred($CI, pkDPoP, jti_c, AT, skDPoP_x)
+    inner       = <'credential-req-fixed', AT, dpopPC, pkH, keyProof,
+                   'crypt-resp', pkE_W, 'tid-bind', pkB>
+    outer       = <'credential-req-jwe', penc(inner, pk(~skR_CI), rEnc)>
+    encResp_202 = penc(<'202-deferred', ~tid_ci>, pkE_W, ~rRespEnc)
+  in
+    [ In(outer),
+      !CI_ReqEncSk($CI, ~skR_CI),
+      !Valid_AT($CI, AT, $AS, $Wid_at, pkDPoP),
+      !Ltk_CI($CI, ~ltkCI),
+      Fr(~tid_ci), Fr(~rRespEnc) ]
+  --[ _restrict( verify(keyProof, keyProofPayload($CI, pkH, iat),
+                        pkH) = true ),
+      _restrict( verify(dpopPC, dpopPayloadCred($CI, pkDPoP, jti_c, AT),
+                        pkDPoP) = true ),
+      OnlyOnceV(<'dpop-jti-cred', jti_c>),
+      OnlyOnceV(<'tid-issued', ~tid_ci>),
+      CI_Issued_TxId($CI, $AS, $Wid_at, ~tid_ci, AT, pkH, pkE_W, pkDPoP),
+      CI_Bound_TxId_To_PkB($CI, ~tid_ci, pkB) ]->
+    [ !CI_PendingTx_Fixed($CI, ~tid_ci, AT, $AS, $Wid_at, pkDPoP, pkH, pkB),
+      !PendingTxId($Wid_at, $CI, ~tid_ci),
+      Out(encResp_202) ]
+#endif
+
+#ifdef FIXED_V2
+rule CI_Credential_Endpoint_Defer [color=#fef9c3, role="CI"]:
+  let
+    keyProof    = keyProofJWTV2($CI, pkH, pkB, iat, skH_x)
+    dpopPC      = dpopProofCred($CI, pkDPoP, jti_c, AT, skDPoP_x)
+    inner       = <'credential-req-v2', AT, dpopPC, pkH, keyProof,
+                   'crypt-resp', pkE_W, 'tid-bind', pkB>
+    outer       = <'credential-req-jwe', penc(inner, pk(~skR_CI), rEnc)>
+    encResp_202 = penc(<'202-deferred', ~tid_ci>, pkE_W, ~rRespEnc)
+  in
+    [ In(outer),
+      !CI_ReqEncSk($CI, ~skR_CI),
+      !Valid_AT($CI, AT, $AS, $Wid_at, pkDPoP),
+      !Ltk_CI($CI, ~ltkCI),
+      Fr(~tid_ci), Fr(~rRespEnc) ]
+  --[ _restrict( verify(keyProof, keyProofPayloadV2($CI, pkH, pkB, iat),
+                        pkH) = true ),
+      _restrict( verify(dpopPC, dpopPayloadCred($CI, pkDPoP, jti_c, AT),
+                        pkDPoP) = true ),
+      OnlyOnceV(<'dpop-jti-cred', jti_c>),
+      OnlyOnceV(<'tid-issued', ~tid_ci>),
+      CI_Issued_TxId($CI, $AS, $Wid_at, ~tid_ci, AT, pkH, pkE_W, pkDPoP),
+      CI_Bound_TxId_To_PkB($CI, ~tid_ci, pkB) ]->
+    [ !CI_PendingTx_Fixed($CI, ~tid_ci, AT, $AS, $Wid_at, pkDPoP, pkH, pkB),
+      !PendingTxId($Wid_at, $CI, ~tid_ci),
+      Out(encResp_202) ]
+#endif
+
+// ★ V3: Issuer extracts pkH from the AT (via !Valid_AT_V3 binding) and
+// requires the credential request's pkH to equal the AT-bound pkH.
+#ifdef FIXED_V3
+rule CI_Credential_Endpoint_Defer [color=#fef9c3, role="CI"]:
+  let
+    keyProof    = keyProofJWT($CI, pkH, iat, skH_x)
+    dpopPC      = dpopProofCred($CI, pkDPoP, jti_c, AT, skDPoP_x)
+    inner       = <'credential-req-v3', AT, dpopPC, pkH, keyProof,
+                   'crypt-resp', pkE_W, 'tid-bind', pkB>
+    outer       = <'credential-req-jwe', penc(inner, pk(~skR_CI), rEnc)>
+    encResp_202 = penc(<'202-deferred', ~tid_ci>, pkE_W, ~rRespEnc)
+  in
+    [ In(outer),
+      !CI_ReqEncSk($CI, ~skR_CI),
+      !Valid_AT_V3($CI, AT, $AS, $Wid_at, pkDPoP, pkH),    // ★ pkH from AT ★
+      !Ltk_CI($CI, ~ltkCI),
+      Fr(~tid_ci), Fr(~rRespEnc) ]
+  --[ _restrict( verify(keyProof, keyProofPayload($CI, pkH, iat),
+                        pkH) = true ),
+      _restrict( verify(dpopPC, dpopPayloadCred($CI, pkDPoP, jti_c, AT),
+                        pkDPoP) = true ),
+      OnlyOnceV(<'dpop-jti-cred', jti_c>),
+      OnlyOnceV(<'tid-issued', ~tid_ci>),
+      CI_Issued_TxId($CI, $AS, $Wid_at, ~tid_ci, AT, pkH, pkE_W, pkDPoP),
+      CI_Bound_TxId_To_PkB($CI, ~tid_ci, pkB) ]->
+    [ !CI_PendingTx_Fixed($CI, ~tid_ci, AT, $AS, $Wid_at, pkDPoP, pkH, pkB),
+      !PendingTxId($Wid_at, $CI, ~tid_ci),
+      Out(encResp_202) ]
+#endif
+
+
+// Wallet receives 202 deferred response.
+#ifdef VULNERABLE
+rule Wallet_Receive_TxId [color=#d1fae5, role="Wallet"]:
+  let encResp = penc(<'202-deferred', tid>, pk(~skE_W), rRespEnc) in
+    [ W_AwaitingTxId($Wid, $CI, $AS, ~sid, AT,
+                     ~skH, pkH, ~skE_W, pkE_W, ~skDPoP, pkDPoP),
+      In(encResp) ]
+  --[ Wallet_Got_TxId($Wid, $CI, ~sid, tid) ]->
+    [ W_AwaitingDeferred($Wid, $CI, $AS, ~sid, AT,
+                         ~skH, pkH, ~skE_W, pkE_W, ~skDPoP, pkDPoP, tid) ]
+#endif
+
+#ifdef FIXED
+rule Wallet_Receive_TxId [color=#d1fae5, role="Wallet"]:
+  let encResp = penc(<'202-deferred', tid>, pk(~skE_W), rRespEnc) in
+    [ W_AwaitingTxId_FIXED($Wid, $CI, $AS, ~sid, AT,
+                           ~skH, pkH, ~skE_W, pkE_W, ~skB, pkB,
+                           ~skDPoP, pkDPoP),
+      In(encResp) ]
+  --[ Wallet_Got_TxId($Wid, $CI, ~sid, tid) ]->
+    [ W_AwaitingDeferred_FIXED($Wid, $CI, $AS, ~sid, AT,
+                               ~skH, pkH, ~skE_W, pkE_W, ~skB, pkB,
+                               ~skDPoP, pkDPoP, tid) ]
+#endif
+
+#ifdef FIXED_V2
+rule Wallet_Receive_TxId [color=#d1fae5, role="Wallet"]:
+  let encResp = penc(<'202-deferred', tid>, pk(~skE_W), rRespEnc) in
+    [ W_AwaitingTxId_FIXED($Wid, $CI, $AS, ~sid, AT,
+                           ~skH, pkH, ~skE_W, pkE_W, ~skB, pkB,
+                           ~skDPoP, pkDPoP),
+      In(encResp) ]
+  --[ Wallet_Got_TxId($Wid, $CI, ~sid, tid) ]->
+    [ W_AwaitingDeferred_FIXED($Wid, $CI, $AS, ~sid, AT,
+                               ~skH, pkH, ~skE_W, pkE_W, ~skB, pkB,
+                               ~skDPoP, pkDPoP, tid) ]
+#endif
+
+#ifdef FIXED_V3
+rule Wallet_Receive_TxId [color=#d1fae5, role="Wallet"]:
+  let encResp = penc(<'202-deferred', tid>, pk(~skE_W), rRespEnc) in
+    [ W_AwaitingTxId_V3($Wid, $CI, $AS, ~sid, AT,
+                        ~skH, pkH, ~skE_W, pkE_W, ~skB, pkB,
+                        ~skDPoP, pkDPoP),
+      In(encResp) ]
+  --[ Wallet_Got_TxId($Wid, $CI, ~sid, tid) ]->
+    [ W_AwaitingDeferred_V3($Wid, $CI, $AS, ~sid, AT,
+                            ~skH, pkH, ~skE_W, pkE_W, ~skB, pkB,
+                            ~skDPoP, pkDPoP, tid) ]
+#endif
+
+
+// ============================================================================
+//             DEFERRED CREDENTIAL ENDPOINT (Final §9)
+// ============================================================================
+
+#ifdef VULNERABLE
+rule Wallet_Send_Deferred_Req [color=#d1fae5, role="Wallet"]:
+  let
+    pkE_new = pk(~skE_W)
+    dpopPD  = dpopProofDef($CI, pkDPoP, ~jti_d, AT, ~skDPoP)
+    inner   = <'def-req', AT, dpopPD, tid, 'crypt-resp', pkE_new>
+    outer   = <'def-req-jwe', penc(inner, pkR_CI, ~rEnc)>
+  in
+    [ W_AwaitingDeferred($Wid, $CI, $AS, ~sid, AT,
+                         ~skH, pkH, ~skE_W, pkE_W, ~skDPoP, pkDPoP, tid),
+      !CI_ReqEncPk($CI, pkR_CI),
+      Fr(~jti_d), Fr(~rEnc) ]
+  --[ Wallet_Sent_Deferred_Req($Wid, $CI, ~sid, tid, pkE_new) ]->
+    [ W_DeferredSent($Wid, $CI, $AS, ~sid, AT,
+                     ~skH, pkH, ~skE_W, pkE_W, ~skDPoP, pkDPoP, tid),
+      Out(outer) ]
+
+rule CI_Deferred_Endpoint_Vuln [color=#fef9c3, role="CI"]:
+  let
+    cred    = credentialSig($CI, pkH, ~ltkCI)
+    dpopPD  = dpopProofDef($CI, pkDPoP, jti_d, AT, skDPoP_x)
+    inner   = <'def-req', AT, dpopPD, tid, 'crypt-resp', pkE_new>
+    outer   = <'def-req-jwe', penc(inner, pk(~skR_CI), rEnc)>
+    encCred = penc(<'cred-resp', cred>, pkE_new, ~rRespEnc)
+  in
+    [ In(outer),
+      !CI_ReqEncSk($CI, ~skR_CI),
+      !CI_PendingTx_Vuln($CI, tid, AT, $AS, $Wid_at, pkDPoP, pkH),
+      !Ltk_CI($CI, ~ltkCI),
+      Fr(~rRespEnc) ]
+  --[ _restrict( verify(dpopPD, dpopPayloadDef($CI, pkDPoP, jti_d, AT),
+                        pkDPoP) = true ),
+      OnlyOnceV(<'dpop-jti-def', jti_d>),
+      OnlyOnceV(<'tid-redeemed', tid>),
+      CI_Issued_Credential_Vuln($CI, $AS, $Wid_at, pkH, cred,
+                                AT, tid, pkE_new),
+      CredIssued_For_PkH($CI, pkH, AT, tid),
+      CredEncryptedTo($CI, cred, pkE_new),
+      BoundCredential(cred, pkH) ]->
+    [ Out(encCred) ]
+
+rule Wallet_Receive_Credential_Vuln [color=#d1fae5, role="Wallet"]:
+  let
+    sig     = credentialSig($CI, pkH, ~ltkCI)
+    encCred = penc(<'cred-resp', sig>, pk(~skE_W), rRespEnc)
+  in
+    [ W_DeferredSent($Wid, $CI, $AS, ~sid, AT,
+                     ~skH, pkH, ~skE_W, pkE_W, ~skDPoP, pkDPoP, tid),
+      In(encCred),
+      !Ltk_CI($CI, ~ltkCI) ]
+  --[ Wallet_Accepted_Credential($Wid, $CI, ~sid, pkH, sig),
+      Finish($Wid, $CI, ~sid) ]->
+    [ !Wallet_Holds_Credential($Wid, pkH, ~skH, sig) ]
+#endif
+
+// FIXED, FIXED_V2, FIXED_V3: identical deferred-flow rules, parameterised
+// by the appropriate state facts. The bindSig mechanism is the same in
+// all three.
+
+#ifdef FIXED
+rule Wallet_Send_Deferred_Req [color=#d1fae5, role="Wallet"]:
+  let
+    pkE_new = pk(~skE_W)
+    dpopPD  = dpopProofDef($CI, pkDPoP, ~jti_d, AT, ~skDPoP)
+    bindSig = txIdBindSig($CI, tid, pkE_new, ~skB)
+    inner   = <'def-req-fixed', AT, dpopPD, tid,
+               'crypt-resp', pkE_new, 'tid-bind-sig', bindSig>
+    outer   = <'def-req-jwe', penc(inner, pkR_CI, ~rEnc)>
+  in
+    [ W_AwaitingDeferred_FIXED($Wid, $CI, $AS, ~sid, AT,
+                               ~skH, pkH, ~skE_W, pkE_W, ~skB, pkB,
+                               ~skDPoP, pkDPoP, tid),
+      !CI_ReqEncPk($CI, pkR_CI),
+      Fr(~jti_d), Fr(~rEnc) ]
+  --[ Wallet_Sent_Deferred_Req($Wid, $CI, ~sid, tid, pkE_new),
+      Wallet_Sent_Deferred_BindSig($Wid, ~sid, tid, pkE_new) ]->
+    [ W_DeferredSent_FIXED($Wid, $CI, $AS, ~sid, AT,
+                           ~skH, pkH, ~skE_W, pkE_W, ~skB, pkB,
+                           ~skDPoP, pkDPoP, tid),
+      Out(outer) ]
+
+rule CI_Deferred_Endpoint_Fixed [color=#fef9c3, role="CI"]:
+  let
+    cred      = credentialSig($CI, pkH, ~ltkCI)
+    dpopPD    = dpopProofDef($CI, pkDPoP, jti_d, AT, skDPoP_x)
+    bindSig_x = txIdBindSig($CI, tid, pkE_new, skB_x)
+    inner     = <'def-req-fixed', AT, dpopPD, tid,
+                 'crypt-resp', pkE_new, 'tid-bind-sig', bindSig_x>
+    outer     = <'def-req-jwe', penc(inner, pk(~skR_CI), rEnc)>
+    encCred   = penc(<'cred-resp', cred>, pkE_new, ~rRespEnc)
+  in
+    [ In(outer),
+      !CI_ReqEncSk($CI, ~skR_CI),
+      !CI_PendingTx_Fixed($CI, tid, AT, $AS, $Wid_at, pkDPoP, pkH, pkB),
+      !Ltk_CI($CI, ~ltkCI),
+      Fr(~rRespEnc) ]
+  --[ _restrict( verify(dpopPD, dpopPayloadDef($CI, pkDPoP, jti_d, AT),
+                        pkDPoP) = true ),
+      _restrict( verify(bindSig_x, txIdBindPayload($CI, tid, pkE_new),
+                        pkB) = true ),
+      OnlyOnceV(<'dpop-jti-def', jti_d>),
+      OnlyOnceV(<'tid-redeemed', tid>),
+      CI_Issued_Credential_Fixed($CI, $AS, $Wid_at, pkH, cred,
+                                 AT, tid, pkE_new, pkB),
+      CredIssued_For_PkH($CI, pkH, AT, tid),
+      CredEncryptedTo($CI, cred, pkE_new),
+      BoundCredential(cred, pkH) ]->
+    [ Out(encCred) ]
+
+rule Wallet_Receive_Credential_Fixed [color=#d1fae5, role="Wallet"]:
+  let
+    sig     = credentialSig($CI, pkH, ~ltkCI)
+    encCred = penc(<'cred-resp', sig>, pk(~skE_W), rRespEnc)
+  in
+    [ W_DeferredSent_FIXED($Wid, $CI, $AS, ~sid, AT,
+                           ~skH, pkH, ~skE_W, pkE_W, ~skB, pkB,
+                           ~skDPoP, pkDPoP, tid),
+      In(encCred),
+      !Ltk_CI($CI, ~ltkCI) ]
+  --[ Wallet_Accepted_Credential($Wid, $CI, ~sid, pkH, sig),
+      Finish($Wid, $CI, ~sid) ]->
+    [ !Wallet_Holds_Credential($Wid, pkH, ~skH, sig) ]
+#endif
+
+#ifdef FIXED_V2
+rule Wallet_Send_Deferred_Req [color=#d1fae5, role="Wallet"]:
+  let
+    pkE_new = pk(~skE_W)
+    dpopPD  = dpopProofDef($CI, pkDPoP, ~jti_d, AT, ~skDPoP)
+    bindSig = txIdBindSig($CI, tid, pkE_new, ~skB)
+    inner   = <'def-req-fixed', AT, dpopPD, tid,
+               'crypt-resp', pkE_new, 'tid-bind-sig', bindSig>
+    outer   = <'def-req-jwe', penc(inner, pkR_CI, ~rEnc)>
+  in
+    [ W_AwaitingDeferred_FIXED($Wid, $CI, $AS, ~sid, AT,
+                               ~skH, pkH, ~skE_W, pkE_W, ~skB, pkB,
+                               ~skDPoP, pkDPoP, tid),
+      !CI_ReqEncPk($CI, pkR_CI),
+      Fr(~jti_d), Fr(~rEnc) ]
+  --[ Wallet_Sent_Deferred_Req($Wid, $CI, ~sid, tid, pkE_new),
+      Wallet_Sent_Deferred_BindSig($Wid, ~sid, tid, pkE_new) ]->
+    [ W_DeferredSent_FIXED($Wid, $CI, $AS, ~sid, AT,
+                           ~skH, pkH, ~skE_W, pkE_W, ~skB, pkB,
+                           ~skDPoP, pkDPoP, tid),
+      Out(outer) ]
+
+rule CI_Deferred_Endpoint_Fixed [color=#fef9c3, role="CI"]:
+  let
+    cred      = credentialSig($CI, pkH, ~ltkCI)
+    dpopPD    = dpopProofDef($CI, pkDPoP, jti_d, AT, skDPoP_x)
+    bindSig_x = txIdBindSig($CI, tid, pkE_new, skB_x)
+    inner     = <'def-req-fixed', AT, dpopPD, tid,
+                 'crypt-resp', pkE_new, 'tid-bind-sig', bindSig_x>
+    outer     = <'def-req-jwe', penc(inner, pk(~skR_CI), rEnc)>
+    encCred   = penc(<'cred-resp', cred>, pkE_new, ~rRespEnc)
+  in
+    [ In(outer),
+      !CI_ReqEncSk($CI, ~skR_CI),
+      !CI_PendingTx_Fixed($CI, tid, AT, $AS, $Wid_at, pkDPoP, pkH, pkB),
+      !Ltk_CI($CI, ~ltkCI),
+      Fr(~rRespEnc) ]
+  --[ _restrict( verify(dpopPD, dpopPayloadDef($CI, pkDPoP, jti_d, AT),
+                        pkDPoP) = true ),
+      _restrict( verify(bindSig_x, txIdBindPayload($CI, tid, pkE_new),
+                        pkB) = true ),
+      OnlyOnceV(<'dpop-jti-def', jti_d>),
+      OnlyOnceV(<'tid-redeemed', tid>),
+      CI_Issued_Credential_Fixed($CI, $AS, $Wid_at, pkH, cred,
+                                 AT, tid, pkE_new, pkB),
+      CredIssued_For_PkH($CI, pkH, AT, tid),
+      CredEncryptedTo($CI, cred, pkE_new),
+      BoundCredential(cred, pkH) ]->
+    [ Out(encCred) ]
+
+rule Wallet_Receive_Credential_Fixed [color=#d1fae5, role="Wallet"]:
+  let
+    sig     = credentialSig($CI, pkH, ~ltkCI)
+    encCred = penc(<'cred-resp', sig>, pk(~skE_W), rRespEnc)
+  in
+    [ W_DeferredSent_FIXED($Wid, $CI, $AS, ~sid, AT,
+                           ~skH, pkH, ~skE_W, pkE_W, ~skB, pkB,
+                           ~skDPoP, pkDPoP, tid),
+      In(encCred),
+      !Ltk_CI($CI, ~ltkCI) ]
+  --[ Wallet_Accepted_Credential($Wid, $CI, ~sid, pkH, sig),
+      Finish($Wid, $CI, ~sid) ]->
+    [ !Wallet_Holds_Credential($Wid, pkH, ~skH, sig) ]
+#endif
+
+#ifdef FIXED_V3
+rule Wallet_Send_Deferred_Req [color=#d1fae5, role="Wallet"]:
+  let
+    pkE_new = pk(~skE_W)
+    dpopPD  = dpopProofDef($CI, pkDPoP, ~jti_d, AT, ~skDPoP)
+    bindSig = txIdBindSig($CI, tid, pkE_new, ~skB)
+    inner   = <'def-req-v3', AT, dpopPD, tid,
+               'crypt-resp', pkE_new, 'tid-bind-sig', bindSig>
+    outer   = <'def-req-jwe', penc(inner, pkR_CI, ~rEnc)>
+  in
+    [ W_AwaitingDeferred_V3($Wid, $CI, $AS, ~sid, AT,
+                            ~skH, pkH, ~skE_W, pkE_W, ~skB, pkB,
+                            ~skDPoP, pkDPoP, tid),
+      !CI_ReqEncPk($CI, pkR_CI),
+      Fr(~jti_d), Fr(~rEnc) ]
+  --[ Wallet_Sent_Deferred_Req($Wid, $CI, ~sid, tid, pkE_new),
+      Wallet_Sent_Deferred_BindSig($Wid, ~sid, tid, pkE_new) ]->
+    [ W_DeferredSent_V3($Wid, $CI, $AS, ~sid, AT,
+                        ~skH, pkH, ~skE_W, pkE_W, ~skB, pkB,
+                        ~skDPoP, pkDPoP, tid),
+      Out(outer) ]
+
+rule CI_Deferred_Endpoint_V3 [color=#fef9c3, role="CI"]:
+  let
+    cred      = credentialSig($CI, pkH, ~ltkCI)
+    dpopPD    = dpopProofDef($CI, pkDPoP, jti_d, AT, skDPoP_x)
+    bindSig_x = txIdBindSig($CI, tid, pkE_new, skB_x)
+    inner     = <'def-req-v3', AT, dpopPD, tid,
+                 'crypt-resp', pkE_new, 'tid-bind-sig', bindSig_x>
+    outer     = <'def-req-jwe', penc(inner, pk(~skR_CI), rEnc)>
+    encCred   = penc(<'cred-resp', cred>, pkE_new, ~rRespEnc)
+  in
+    [ In(outer),
+      !CI_ReqEncSk($CI, ~skR_CI),
+      !CI_PendingTx_Fixed($CI, tid, AT, $AS, $Wid_at, pkDPoP, pkH, pkB),
+      !Ltk_CI($CI, ~ltkCI),
+      Fr(~rRespEnc) ]
+  --[ _restrict( verify(dpopPD, dpopPayloadDef($CI, pkDPoP, jti_d, AT),
+                        pkDPoP) = true ),
+      _restrict( verify(bindSig_x, txIdBindPayload($CI, tid, pkE_new),
+                        pkB) = true ),
+      OnlyOnceV(<'dpop-jti-def', jti_d>),
+      OnlyOnceV(<'tid-redeemed', tid>),
+      CI_Issued_Credential_Fixed($CI, $AS, $Wid_at, pkH, cred,
+                                 AT, tid, pkE_new, pkB),
+      CredIssued_For_PkH($CI, pkH, AT, tid),
+      CredEncryptedTo($CI, cred, pkE_new),
+      BoundCredential(cred, pkH) ]->
+    [ Out(encCred) ]
+
+rule Wallet_Receive_Credential_V3 [color=#d1fae5, role="Wallet"]:
+  let
+    sig     = credentialSig($CI, pkH, ~ltkCI)
+    encCred = penc(<'cred-resp', sig>, pk(~skE_W), rRespEnc)
+  in
+    [ W_DeferredSent_V3($Wid, $CI, $AS, ~sid, AT,
+                        ~skH, pkH, ~skE_W, pkE_W, ~skB, pkB,
+                        ~skDPoP, pkDPoP, tid),
+      In(encCred),
+      !Ltk_CI($CI, ~ltkCI) ]
+  --[ Wallet_Accepted_Credential($Wid, $CI, ~sid, pkH, sig),
+      Finish($Wid, $CI, ~sid) ]->
+    [ !Wallet_Holds_Credential($Wid, pkH, ~skH, sig) ]
+#endif
+
+
+// ============================================================================
+//                              LEMMAS
+// ============================================================================
+
+// Secrecy helpers (close enumeration loops in headline lemmas)
+
+lemma skR_CI_secrecy [reuse, use_induction]:
+  "All CI skR #r #i.
+       CIReqEncSk(CI, skR) @ r & KU(skR) @ i
+     ==> (Ex #l. Reveal_CI_ReqEncKey(CI) @ l & l < i)"
+
+lemma ltkCI_secrecy [reuse, use_induction]:
+  "All CI k #r #i.
+       CIKey(CI, k) @ r & KU(k) @ i
+     ==> (Ex #l. Reveal_CI(CI) @ l & l < i)"
+
+lemma skH_secrecy [reuse, use_induction]:
+  "All Wid skH pkH #r #i.
+       HolderKeyFresh(Wid, skH, pkH) @ r & KU(skH) @ i
+     ==> (Ex #l. Reveal_HolderKey(Wid, pkH) @ l & l < i)"
+
+lemma skE_W_secrecy [reuse, use_induction]:
+  "All Wid skE pkE #r #i.
+       EncKeyFresh(Wid, skE, pkE) @ r & KU(skE) @ i
+     ==> (Ex #l. Reveal_WalletEncKey(Wid, pkE) @ l & l < i)"
+
+// Uniqueness helpers
+
+lemma helper_pkH_unique [reuse, use_induction]:
+  "All Wid1 Wid2 s1 s2 pkH #i #j.
+       WalletGen_HolderKey(Wid1, s1, pkH) @ i
+     & WalletGen_HolderKey(Wid2, s2, pkH) @ j
+     ==> #i = #j"
+
+lemma helper_pkE_unique [reuse, use_induction]:
+  "All Wid1 Wid2 s1 s2 pkE #i #j.
+       WalletGen_EncKey(Wid1, s1, pkE) @ i
+     & WalletGen_EncKey(Wid2, s2, pkE) @ j
+     ==> #i = #j"
+
+#ifdef FIXED
+lemma helper_skB_unique [reuse, use_induction]:
+  "All Wid1 Wid2 s1 s2 pkB #i #j.
+       WalletGen_BindKey(Wid1, s1, pkB) @ i
+     & WalletGen_BindKey(Wid2, s2, pkB) @ j
+     ==> #i = #j"
+#endif
+
+#ifdef FIXED_V2
+lemma helper_skB_unique [reuse, use_induction]:
+  "All Wid1 Wid2 s1 s2 pkB #i #j.
+       WalletGen_BindKey(Wid1, s1, pkB) @ i
+     & WalletGen_BindKey(Wid2, s2, pkB) @ j
+     ==> #i = #j"
+#endif
+
+#ifdef FIXED_V3
+lemma helper_skB_unique [reuse, use_induction]:
+  "All Wid1 Wid2 s1 s2 pkB #i #j.
+       WalletGen_BindKey(Wid1, s1, pkB) @ i
+     & WalletGen_BindKey(Wid2, s2, pkB) @ j
+     ==> #i = #j"
+#endif
+
+
+// Executability
+
+lemma exec_full_honest_deferred_flow:
+  exists-trace
+  "Ex Wid CI sid pkH sig #f.
+        Finish(Wid, CI, sid) @ f
+      & Wallet_Accepted_Credential(Wid, CI, sid, pkH, sig) @ f
+      & HonestCI(CI)
+      & NoHolderKeyLeak(Wid)
+      & NoEncKeyLeak(Wid)
+      & NoStoredATLeak(Wid, CI)
+      & NoDPoPKeyLeak(Wid)
+      & NoTxIdLeak(Wid, CI)"
+
+
+// P-50 holder binding (holds in all configurations)
+
+tactic: P50_tactic
+    presort: C
+    prio:
+      regex "WalletGen_HolderKey\("
+      regex "Reveal_HolderKey\("
+      regex "!KU\( pk\("
+      regex "CredIssued_For_PkH\("
+    deprio:
+      regex "!KU\( ~skR_CI"
+      regex "!KU\( ~ltkCI"
+      regex "!KU\( ~skE"
+      regex "!KU\( ~skH"
+      regex "!KU\( ~skDPoP"
+      regex "!KU\( ~atSecret"
+      regex "!KU\( ~"
+
+lemma P50_holder_binding_preserved [heuristic={P50_tactic}]:
+  "All CI pkH AT tid #i.
+       CredIssued_For_PkH(CI, pkH, AT, tid) @ i
+     & HonestCI(CI)
+     & HonestCIReqEnc(CI)
+     ==> ( (Ex Wid s #g.
+              WalletGen_HolderKey(Wid, s, pkH) @ g & g < i)
+         | (Ex Wid #r. Reveal_HolderKey(Wid, pkH) @ r & r < i)
+         | (Ex #k. KU(pkH) @ k & k < i) )"
+
+
+// ===========================================================================
+//   VULNERABLE: C2 attack
+// ===========================================================================
+
+tactic: c2_witness_tactic
+    presort: C
+    prio:
+      regex "CI_Issued_Credential_Vuln\("
+      regex "Wallet_Sent_Cred_Req\("
+      regex "Reveal_TxId\("
+      regex "Reveal_StoredAT\("
+      regex "Reveal_DPoPKey\("
+      regex "!CI_PendingTx_Vuln\("
+      regex "!Valid_AT\("
+      regex "!StoredDPoPKey\("
+      regex "!StoredAT\("
+      regex "!PendingTxId\("
+    deprio:
+      regex "!KU\( ~skE"
+      regex "!KU\( ~skH"
+      regex "!KU\( ~ltkCI"
+      regex "!KU\( ~"
+
+#ifdef VULNERABLE
+
+lemma c2_attack_witness [heuristic={c2_witness_tactic}]:
+  exists-trace
+  "Ex CI AS Wid pkH cred AT tid pkE_Adv pkD sid
+      #w #i #k #r_t #r_at #r_dp.
+        Wallet_Sent_Cred_Req(Wid, CI, sid, pkH, AT) @ w
+      & CI_Issued_Credential_Vuln(CI, AS, Wid, pkH, cred,
+                                  AT, tid, pkE_Adv) @ i
+      & K(cred) @ k
+      & Reveal_TxId(Wid, CI, tid) @ r_t
+      & Reveal_StoredAT(Wid, CI, AT) @ r_at
+      & Reveal_DPoPKey(Wid, pkD) @ r_dp
+      & w < r_t & r_t < i & r_at < i & r_dp < i & i < k
+      & HonestCI(CI) & HonestCIReqEnc(CI)
+      & NoHolderKeyLeak(Wid) & NoEncKeyLeak(Wid)"
+
+lemma P10_credential_secrecy_vuln:
+  "All CI AS Wid pkH cred AT tid pkE_new sid #i #g.
+       CI_Issued_Credential_Vuln(CI, AS, Wid, pkH, cred,
+                                 AT, tid, pkE_new) @ i
+     & WalletGen_HolderKey(Wid, sid, pkH) @ g
+     & HonestCI(CI) & HonestCIReqEnc(CI)
+     & NoHolderKeyLeak(Wid) & NoEncKeyLeak(Wid)
+     ==> not (Ex #k. K(cred) @ k)"
+
+#endif
+
+
+// ===========================================================================
+//   FIXED v1: residual attack C2' + scoped P-10
+// ===========================================================================
+
+tactic: c2prime_witness_tactic
+    presort: C
+    prio:
+      regex "CI_Issued_Credential_Fixed\("
+      regex "Wallet_Sent_Cred_Req\("
+      regex "Reveal_TxId\("
+      regex "Reveal_StoredAT\("
+      regex "Reveal_DPoPKey\("
+      regex "Reveal_HolderKey\("
+      regex "!CI_PendingTx_Fixed\("
+      regex "!Valid_AT\("
+      regex "!StoredDPoPKey\("
+      regex "!StoredAT\("
+      regex "!StoredHolderKey\("
+      regex "!PendingTxId\("
+    deprio:
+      regex "!KU\( ~skE"
+      regex "!KU\( ~ltkCI"
+      regex "!KU\( ~skR_CI"
+      regex "!KU\( ~"
+
+#ifdef FIXED
+
+lemma c2prime_attack_witness_fixed [heuristic={c2prime_witness_tactic}]:
+  exists-trace
+  "Ex CI AS WidA WidB pkH_A pkH_B cred AT tid pkE_Adv pkB_Adv pkD
+      sidA sidB
+      #wA #wB #i #k #r_at #r_dp #r_h.
+        Wallet_Sent_Cred_Req(WidA, CI, sidA, pkH_A, AT) @ wA
+      & WalletGen_HolderKey(WidB, sidB, pkH_B) @ wB
+      & CI_Issued_Credential_Fixed(CI, AS, WidA, pkH_B, cred,
+                                   AT, tid, pkE_Adv, pkB_Adv) @ i
+      & K(cred) @ k
+      & Reveal_StoredAT(WidA, CI, AT) @ r_at
+      & Reveal_DPoPKey(WidA, pkD) @ r_dp
+      & Reveal_HolderKey(WidB, pkH_B) @ r_h
+      & not (WidA = WidB)
+      & wA < r_at & wB < r_h
+      & r_at < i & r_dp < i & r_h < i & i < k
+      & HonestCI(CI) & HonestCIReqEnc(CI)
+      & NoBindKeyLeak(WidA)
+      & NoHolderKeyLeak(WidA) & NoEncKeyLeak(WidA)"
+
+lemma P10_credential_secrecy_fixed:
+  "All CI AS Wid pkH cred AT tid pkE_new pkB sid #i #g.
+       CI_Issued_Credential_Fixed(CI, AS, Wid, pkH, cred,
+                                  AT, tid, pkE_new, pkB) @ i
+     & WalletGen_HolderKey(Wid, sid, pkH) @ g    // pkH must be Wid's
+     & HonestCI(CI) & HonestCIReqEnc(CI)
+     & NoHolderKeyLeak(Wid) & NoEncKeyLeak(Wid) & NoBindKeyLeak(Wid)
+     ==> not (Ex #k. K(cred) @ k)"
+
+#endif
+
+
+// ===========================================================================
+//   FIXED_V2 (NEGATIVE RESULT): keyProof-binds-pkB does NOT close C2'
+// ===========================================================================
+
+#ifdef FIXED_V2
+
+// Tamarin will FALSIFY this — recorded as the v2 negative result.
+lemma c2prime_attack_blocked_v2:
+  "All CI AS WidA WidB pkH_A pkH_B cred AT tid pkE_Adv pkB_Adv pkD
+       sidA sidB
+       #wA #wB #i #r_at #r_dp #r_h.
+        Wallet_Sent_Cred_Req(WidA, CI, sidA, pkH_A, AT) @ wA
+      & WalletGen_HolderKey(WidB, sidB, pkH_B) @ wB
+      & CI_Issued_Credential_Fixed(CI, AS, WidA, pkH_B, cred,
+                                   AT, tid, pkE_Adv, pkB_Adv) @ i
+      & Reveal_StoredAT(WidA, CI, AT) @ r_at
+      & Reveal_DPoPKey(WidA, pkD) @ r_dp
+      & Reveal_HolderKey(WidB, pkH_B) @ r_h
+      & not (WidA = WidB)
+      & HonestCI(CI) & HonestCIReqEnc(CI)
+      & NoBindKeyLeak(WidA)
+      & NoHolderKeyLeak(WidA) & NoEncKeyLeak(WidA)
+      ==> not (Ex #k. K(cred) @ k)"
+
+// Tamarin will FALSIFY this too — also recorded.
+lemma P10_credential_secrecy_fixed_v2:
+  "All CI AS Wid pkH cred AT tid pkE_new pkB #i.
+       CI_Issued_Credential_Fixed(CI, AS, Wid, pkH, cred,
+                                  AT, tid, pkE_new, pkB) @ i
+     & HonestCI(CI) & HonestCIReqEnc(CI)
+     & NoHolderKeyLeak(Wid) & NoEncKeyLeak(Wid) & NoBindKeyLeak(Wid)
+     ==> not (Ex #k. K(cred) @ k)"
+
+#endif
+
+
+// ===========================================================================
+//   FIXED_V3: AT-bound pkH closes both C2 and C2'
+// ===========================================================================
+
+#ifdef FIXED_V3
+
+// ★ Under v3, the C2' attack pattern is structurally closed.
+// Adversary using A's leaked AT is forced to use pkH_A, for which they
+// don't have skH_A (NoHolderKeyLeak(WidA)) — keyProof construction fails.
+lemma c2prime_attack_blocked_v3:
+  "All CI AS WidA WidB pkH_A pkH_B cred AT tid pkE_Adv pkB_Adv pkD
+       sidA sidB
+       #wA #wB #i #r_at #r_dp #r_h.
+        Wallet_Sent_Cred_Req(WidA, CI, sidA, pkH_A, AT) @ wA
+      & WalletGen_HolderKey(WidB, sidB, pkH_B) @ wB
+      & CI_Issued_Credential_Fixed(CI, AS, WidA, pkH_B, cred,
+                                   AT, tid, pkE_Adv, pkB_Adv) @ i
+      & Reveal_StoredAT(WidA, CI, AT) @ r_at
+      & Reveal_DPoPKey(WidA, pkD) @ r_dp
+      & Reveal_HolderKey(WidB, pkH_B) @ r_h
+      & not (WidA = WidB)
+      & HonestCI(CI) & HonestCIReqEnc(CI)
+      & NoBindKeyLeak(WidA)
+      & NoHolderKeyLeak(WidA) & NoEncKeyLeak(WidA)
+      ==> not (Ex #k. K(cred) @ k)"
+
+// ★ Under v3, P-10 holds WITHOUT the WalletGen_HolderKey honest-pkH
+// scoping that v1 required. This is the strongest credential-secrecy
+// claim we can make under standard adversary assumptions.
+lemma P10_credential_secrecy_fixed_v3:
+  "All CI AS Wid pkH cred AT tid pkE_new pkB #i.
+       CI_Issued_Credential_Fixed(CI, AS, Wid, pkH, cred,
+                                  AT, tid, pkE_new, pkB) @ i
+     & HonestCI(CI) & HonestCIReqEnc(CI)
+     & NoHolderKeyLeak(Wid) & NoEncKeyLeak(Wid) & NoBindKeyLeak(Wid)
+     ==> not (Ex #k. K(cred) @ k)"
+
+#endif
+
+
+end
+
+/*
+
+-DVULNERABLE
+==============================================================================
+summary of summaries:
+
+analyzed: OID4VCI_v1-0_deferred-issuance-flow.spthy
+
+  output:          OID4VCI_v1-0_deferred-issuance-flow_vulnerable_DependencyGraph.spthy
+  processing time: 19.00s
+  
+  skR_CI_secrecy (all-traces): verified (10 steps)
+  ltkCI_secrecy (all-traces): verified (8 steps)
+  skH_secrecy (all-traces): verified (12 steps)
+  skE_W_secrecy (all-traces): verified (12 steps)
+  helper_pkH_unique (all-traces): verified (3 steps)
+  helper_pkE_unique (all-traces): verified (3 steps)
+  exec_full_honest_deferred_flow (exists-trace): verified (8 steps)
+  P50_holder_binding_preserved (all-traces): verified (32 steps)
+  c2_attack_witness (exists-trace): verified (26 steps)
+  P10_credential_secrecy_vuln (all-traces): falsified - found trace (27 steps)
+  AUTO_typing (all-traces): verified (13 steps)
+
+==============================================================================
+	Command being timed: "systemd-run --user --scope -p MemoryMax=200G -p MemorySwapMax=0 tamarin-prover OID4VCI_v1-0_deferred-issuance-flow.spthy --prove -DVULNERABLE --auto-sources --stop-on-trace=seqdfs --quit-on-warning -c=50 -s=50 --derivcheck-timeout=0 --output=OID4VCI_v1-0_deferred-issuance-flow_vulnerable_DependencyGraph.spthy"
+	User time (seconds): 44.74
+	System time (seconds): 2.43
+	Percent of CPU this job got: 246%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:19.14
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 657336
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 204599
+	Voluntary context switches: 235447
+	Involuntary context switches: 1993
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 120
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+
+
+******************************************************************************
+******************************************************************************
+******************************************************************************
+
+
+FIXED_V1
+==============================================================================
+summary of summaries:
+
+analyzed: OID4VCI_v1-0_deferred-issuance-flow.spthy
+
+  output:          OID4VCI_v1-0_deferred-issuance-flow_fixed-v1_DependencyGraph.spthy
+  processing time: 32.12s
+  
+  skR_CI_secrecy (all-traces): verified (10 steps)
+  ltkCI_secrecy (all-traces): verified (8 steps)
+  skH_secrecy (all-traces): verified (12 steps)
+  skE_W_secrecy (all-traces): verified (12 steps)
+  helper_pkH_unique (all-traces): verified (3 steps)
+  helper_pkE_unique (all-traces): verified (3 steps)
+  helper_skB_unique (all-traces): verified (3 steps)
+  exec_full_honest_deferred_flow (exists-trace): verified (8 steps)
+  P50_holder_binding_preserved (all-traces): verified (35 steps)
+  c2prime_attack_witness_fixed (exists-trace): verified (43 steps)
+  P10_credential_secrecy_fixed (all-traces): verified (113 steps)
+  AUTO_typing (all-traces): verified (13 steps)
+
+==============================================================================
+	Command being timed: "systemd-run --user --scope -p MemoryMax=200G -p MemorySwapMax=0 tamarin-prover OID4VCI_v1-0_deferred-issuance-flow.spthy --prove -DFIXED --auto-sources --stop-on-trace=seqdfs --quit-on-warning -c=50 -s=50 --derivcheck-timeout=0 --output=OID4VCI_v1-0_deferred-issuance-flow_fixed-v1_DependencyGraph.spthy"
+	User time (seconds): 66.13
+	System time (seconds): 4.58
+	Percent of CPU this job got: 218%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:32.34
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 1276340
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 350457
+	Voluntary context switches: 419522
+	Involuntary context switches: 4880
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 200
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+
+
+******************************************************************************
+******************************************************************************
+******************************************************************************
+
+
+FIXED_V2
+==============================================================================
+summary of summaries:
+
+analyzed: OID4VCI_v1-0_deferred-issuance-flow.spthy
+
+  output:          OID4VCI_v1-0_deferred-issuance-flow_fixed-v2_DependencyGraph.spthy
+  processing time: 63.83s
+  
+  skR_CI_secrecy (all-traces): verified (10 steps)
+  ltkCI_secrecy (all-traces): verified (8 steps)
+  skH_secrecy (all-traces): verified (12 steps)
+  skE_W_secrecy (all-traces): verified (12 steps)
+  helper_pkH_unique (all-traces): verified (3 steps)
+  helper_pkE_unique (all-traces): verified (3 steps)
+  helper_skB_unique (all-traces): verified (3 steps)
+  exec_full_honest_deferred_flow (exists-trace): verified (8 steps)
+  P50_holder_binding_preserved (all-traces): verified (35 steps)
+  c2prime_attack_blocked_v2 (all-traces): falsified - found trace (47 steps)
+  P10_credential_secrecy_fixed_v2 (all-traces): falsified - found trace (39 steps)
+  AUTO_typing (all-traces): verified (13 steps)
+
+==============================================================================
+	Command being timed: "systemd-run --user --scope -p MemoryMax=200G -p MemorySwapMax=0 tamarin-prover OID4VCI_v1-0_deferred-issuance-flow.spthy --prove -DFIXED_V2 --auto-sources --stop-on-trace=seqdfs --quit-on-warning -c=50 -s=50 --derivcheck-timeout=0 --output=OID4VCI_v1-0_deferred-issuance-flow_fixed-v2_DependencyGraph.spthy"
+	User time (seconds): 129.04
+	System time (seconds): 7.32
+	Percent of CPU this job got: 212%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 1:04.05
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 1681112
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 474899
+	Voluntary context switches: 987160
+	Involuntary context switches: 2714
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 168
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+
+
+******************************************************************************
+******************************************************************************
+******************************************************************************
+
+
+FIXED_V3
+==============================================================================
+summary of summaries:
+
+analyzed: OID4VCI_v1-0_deferred-issuance-flow.spthy
+
+  output:          OID4VCI_v1-0_deferred-issuance-flow_fixed-v3_DependencyGraph.spthy
+  processing time: 13.42s
+  
+  skR_CI_secrecy (all-traces): verified (10 steps)
+  ltkCI_secrecy (all-traces): verified (8 steps)
+  skH_secrecy (all-traces): verified (8 steps)
+  skE_W_secrecy (all-traces): verified (12 steps)
+  helper_pkH_unique (all-traces): verified (3 steps)
+  helper_pkE_unique (all-traces): verified (3 steps)
+  helper_skB_unique (all-traces): verified (3 steps)
+  exec_full_honest_deferred_flow (exists-trace): verified (8 steps)
+  P50_holder_binding_preserved (all-traces): verified (17 steps)
+  c2prime_attack_blocked_v3 (all-traces): verified (10 steps)
+  P10_credential_secrecy_fixed_v3 (all-traces): verified (94 steps)
+  AUTO_typing (all-traces): verified (13 steps)
+
+==============================================================================
+	Command being timed: "systemd-run --user --scope -p MemoryMax=200G -p MemorySwapMax=0 tamarin-prover OID4VCI_v1-0_deferred-issuance-flow.spthy --prove -DFIXED_V3 --auto-sources --stop-on-trace=seqdfs --quit-on-warning -c=50 -s=50 --derivcheck-timeout=0 --output=OID4VCI_v1-0_deferred-issuance-flow_fixed-v3_DependencyGraph.spthy"
+	User time (seconds): 30.73
+	System time (seconds): 1.72
+	Percent of CPU this job got: 239%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:13.57
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 348292
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 108735
+	Voluntary context switches: 123053
+	Involuntary context switches: 1805
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 152
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+
+*/

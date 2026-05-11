@@ -1,0 +1,2648 @@
+Running as unit: run-rd7598c2ed74a44509d1f02493ca6aa81.scope; invocation ID: 7ebd5ff4334648f08cd91922bf260701
+maude tool: 'maude'
+ checking version: 3.5.1. OK.
+ checking installation: OK.
+[Theory OID4VCI_C2] Theory loaded
+[Theory OID4VCI_C2] Theory translated
+[Theory OID4VCI_C2] Theory closed
+[Saturating Sources] Step 1 (Max 50)
+[Saturating Sources] Done
+[Saturating Sources] Step 1 (Max 50)
+[Saturating Sources] Done
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: CredIssued_For_PkH( CI, pkH, AT, tid ) @ #i
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: CI_Issued_Credential_Vuln( $CI, AS.1, $Wid, pk(~skH), cred, AT,                           tid, pkE_Adv) @ #i
+1: W_HasAT( $Wid, $CI, $AS, ~sid, AT, ~skDPoP, pkDPoP ) ▶₀ #w
+2: !CI_ReqEncPk( $CI, pkR_CI ) ▶₁ #w
+3: !PendingTxId( $Wid, $CI, tid ) ▶₀ #r_t
+4: !StoredAT( $Wid, $CI, AT ) ▶₀ #r_at
+5: !StoredDPoPKey( $Wid, ~skDPoP.1, pkD ) ▶₀ #r_dp
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+3
+4
+5
+1
+2
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+[Saturating Sources] Step 1 (Max 50)
+[Saturating Sources] Done
+[Saturating Sources] Step 1 (Max 50)
+[Saturating Sources] Done
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: W_HasAT( $Wid, $CI, $AS.1, ~sid, AT, ~skDPoP.1, pkDPoP ) ▶₀ #w
+1: !CI_ReqEncPk( $CI, pkR_CI ) ▶₁ #w
+2: !PendingTxId( $Wid, $CI, tid ) ▶₀ #r_t
+3: !StoredAT( $Wid, $CI, AT ) ▶₀ #r_at
+4: !StoredDPoPKey( $Wid, ~skDPoP, pkD ) ▶₀ #r_dp
+5: !KU( penc(<'def-req', AT,            sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(skDPoP_x), jti_d, AT                >,                skDPoP_x),            tid, 'crypt-resp', pkE_Adv>,          pk(~skR_CI), rEnc)) @ #vk.3
+6: !CI_ReqEncSk( $CI, ~skR_CI ) ▶₁ #i
+7: !CI_PendingTx_Vuln( $CI, tid, AT, $AS, $Wid, pk(skDPoP_x), pk(~skH)) ▶₂ #i
+8: !Ltk_CI( $CI, ~ltkCI ) ▶₃ #i
+9: !KU( sign(<'credential', $CI, 'PII-dataset', pk(~skH)>, ~ltkCI)) @ #vk
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+2
+3
+4
+7
+0
+1
+5
+6
+8
+9
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( penc(<'def-req', AT,            sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(skDPoP_x), jti_d, AT                >,                skDPoP_x),            tid, 'crypt-resp', pkE_new>,          pk(~skR_CI), rEnc)) @ #vk.2
+1: !CI_ReqEncSk( $CI, ~skR_CI ) ▶₁ #i
+2: !CI_PendingTx_Vuln( $CI, tid, AT, $AS, $Wid_at, pk(skDPoP_x), pkH) ▶₂ #i
+3: !Ltk_CI( $CI, ~ltkCI ) ▶₃ #i
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: W_HasAT( $Wid, $CI, $AS.1, ~sid, AT, ~skDPoP.1, pkDPoP ) ▶₀ #w
+1: !CI_ReqEncPk( $CI, pkR_CI ) ▶₁ #w
+2: !StoredAT( $Wid, $CI, AT ) ▶₀ #r_at
+3: !StoredDPoPKey( $Wid, ~skDPoP, pkD ) ▶₀ #r_dp
+4: !KU( penc(<'def-req', AT,            sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(skDPoP_x), jti_d, AT                >,                skDPoP_x),            ~tid_ci, 'crypt-resp', pkE_Adv>,          pk(~skR_CI), rEnc)) @ #vk.3
+5: !CI_ReqEncSk( $CI, ~skR_CI ) ▶₁ #i
+6: !CI_PendingTx_Vuln( $CI, ~tid_ci, AT, $AS, $Wid, pk(skDPoP_x),                    pk(~skH)) ▶₂ #i
+7: !Ltk_CI( $CI, ~ltkCI ) ▶₃ #i
+8: !KU( sign(<'credential', $CI, 'PII-dataset', pk(~skH)>, ~ltkCI)) @ #vk
+9: !KU( penc(<'credential-req',            aToken(~atSecret, pk(~skDPoP.2), $CI, $AS.2),            sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),                  jti_c.1, aToken(~atSecret, pk(~skDPoP.2), $CI, $AS.2)>,                ~skDPoP.2),            pk(skH_x),            sign(<'openid4vci-proof+jwt', 'ES256', pk(skH_x), $CI, iat.1>,                skH_x),            'crypt-resp', pkE_W>,          pk(~skR_CI.1), rEnc.2)) @ #vk.6
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+2
+3
+6
+0
+1
+4
+5
+7
+8
+9
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: W_HasAT( $Wid, $CI, $AS.3, ~sid,         aToken(~atSecret, pk(~skDPoP), $CI, $AS), ~skDPoP.3, pkDPoP) ▶₀ #w
+1: !CI_ReqEncPk( $CI, pkR_CI ) ▶₁ #w
+2: !StoredDPoPKey( $Wid, ~skDPoP.1, pkD ) ▶₀ #r_dp
+3: !KU( penc(<'def-req', aToken(~atSecret, pk(~skDPoP), $CI, $AS),            sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(skDPoP_x), jti_d,                  aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,                skDPoP_x),            ~tid_ci, 'crypt-resp', pkE_Adv>,          pk(~skR_CI), rEnc)) @ #vk.3
+4: !CI_ReqEncSk( $CI, ~skR_CI ) ▶₁ #i
+5: !CI_PendingTx_Vuln( $CI, ~tid_ci,                    aToken(~atSecret, pk(~skDPoP), $CI, $AS), $AS.1, $Wid,                    pk(skDPoP_x), pk(~skH)) ▶₂ #i
+6: !Ltk_CI( $CI, ~ltkCI ) ▶₃ #i
+7: !KU( sign(<'credential', $CI, 'PII-dataset', pk(~skH)>, ~ltkCI)) @ #vk
+8: !KU( penc(<'credential-req',            aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.2),            sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2), jti_c,                  aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.2)>,                ~skDPoP.2),            pk(skH_x),            sign(<'openid4vci-proof+jwt', 'ES256', pk(skH_x), $CI, iat>,                skH_x),            'crypt-resp', pkE_W>,          pk(~skR_CI.1), rEnc.1)) @ #vk.6
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+2
+5
+0
+1
+3
+4
+6
+7
+8
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !CI_ReqEncSk( $CI, ~skR_CI ) ▶₁ #i
+1: !CI_PendingTx_Vuln( $CI, tid,                    aToken(~atSecret, pk(~skDPoP), $CI, $AS), $AS.1, $Wid_at,                    pk(~skDPoP), pkH) ▶₂ #i
+2: !Ltk_CI( $CI, ~ltkCI ) ▶₃ #i
+3: !KU( penc(<'202-deferred', tid>, pk(~skE_W), rRespEnc.1) ) @ #vk.3
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !CI_PendingTx_Vuln( $CI, tid,                    aToken(~atSecret, pk(~skDPoP), $CI, $AS), $AS.1, $Wid_at,                    pk(~skDPoP), pkH) ▶₂ #i
+1: !Ltk_CI( $CI, ~ltkCI ) ▶₃ #i
+2: !KU( penc(<'202-deferred', tid>, pk(~skE_W), rRespEnc.1) ) @ #vk.3
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: W_HasAT( $Wid, $CI, $AS.3, ~sid,         aToken(~atSecret, pk(~skDPoP), $CI, $AS), ~skDPoP.3, pkDPoP) ▶₀ #w
+1: !CI_ReqEncPk( $CI, pkR_CI ) ▶₁ #w
+2: !KU( penc(<'def-req', aToken(~atSecret, pk(~skDPoP), $CI, $AS),            sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(skDPoP_x), jti_d,                  aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,                skDPoP_x),            ~tid_ci, 'crypt-resp', pkE_Adv>,          pk(~skR_CI), rEnc)) @ #vk.3
+3: !CI_ReqEncSk( $CI, ~skR_CI ) ▶₁ #i
+4: !CI_PendingTx_Vuln( $CI, ~tid_ci,                    aToken(~atSecret, pk(~skDPoP), $CI, $AS), $AS.1, $Wid,                    pk(skDPoP_x), pk(~skH)) ▶₂ #i
+5: !Ltk_CI( $CI, ~ltkCI ) ▶₃ #i
+6: !KU( sign(<'credential', $CI, 'PII-dataset', pk(~skH)>, ~ltkCI)) @ #vk
+7: !KU( penc(<'credential-req',            aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.2),            sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2), jti_c,                  aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.2)>,                ~skDPoP.2),            pk(skH_x),            sign(<'openid4vci-proof+jwt', 'ES256', pk(skH_x), $CI, iat>,                skH_x),            'crypt-resp', pkE_W>,          pk(~skR_CI.1), rEnc.1)) @ #vk.6
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+4
+0
+1
+2
+3
+5
+6
+7
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !Ltk_CI( $CI, ~ltkCI ) ▶₃ #i
+1: !KU( penc(<'202-deferred', ~tid_ci>, pk(~skE_W), rRespEnc.1)) @ #vk.3
+2: !KU( penc(<'credential-req',            aToken(~atSecret, pk(~skDPoP), $CI, $AS),            sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP), jti_c.1,                  aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,                ~skDPoP),            pk(skH_x),            sign(<'openid4vci-proof+jwt', 'ES256', pk(skH_x), $CI, iat.1>,                skH_x),            'crypt-resp', pkE_W>,          pk(~skR_CI), rEnc.2)) @ #vk.6
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: W_HasAT( $Wid, $CI, $AS.1, ~sid,         aToken(~atSecret, pk(~skDPoP), $CI, $AS), ~skDPoP.2, pkDPoP) ▶₀ #w
+1: !CI_ReqEncPk( $CI, pkR_CI ) ▶₁ #w
+2: !KU( penc(<'def-req', aToken(~atSecret, pk(~skDPoP), $CI, $AS),            sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(~skDPoP), jti_d,                  aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,                ~skDPoP),            ~tid_ci, 'crypt-resp', pkE_Adv>,          pk(~skR_CI), rEnc)) @ #vk.3
+3: !CI_ReqEncSk( $CI, ~skR_CI ) ▶₁ #i
+4: !Ltk_CI( $CI, ~ltkCI ) ▶₃ #i
+5: !KU( sign(<'credential', $CI, 'PII-dataset', pk(~skH)>, ~ltkCI)) @ #vk
+6: !KU( penc(<'credential-req',            aToken(~atSecret, pk(~skDPoP), $CI, $AS),            sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP), jti_c,                  aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,                ~skDPoP),            pk(~skH),            sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat>, ~skH),            'crypt-resp', pkE_W>,          pk(~skR_CI.1), rEnc.1)) @ #vk.6
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+4
+5
+6
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( penc(<'202-deferred', ~tid_ci>, pk(~skE_W), rRespEnc.1)) @ #vk.3
+1: !KU( penc(<'credential-req',            aToken(~atSecret, pk(~skDPoP), $CI, $AS),            sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP), jti_c.1,                  aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,                ~skDPoP),            pk(skH_x),            sign(<'openid4vci-proof+jwt', 'ES256', pk(skH_x), $CI, iat.1>,                skH_x),            'crypt-resp', pkE_W>,          pk(~skR_CI), rEnc.2)) @ #vk.6
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !CI_ReqEncPk( $CI, pkR_CI ) ▶₁ #w
+1: !KU( penc(<'def-req', aToken(~atSecret, pk(~skDPoP), $CI, $AS),            sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(~skDPoP), jti_d,                  aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,                ~skDPoP),            ~tid_ci, 'crypt-resp', pkE_Adv>,          pk(~skR_CI), rEnc)) @ #vk.3
+2: !CI_ReqEncSk( $CI, ~skR_CI ) ▶₁ #i
+3: !Ltk_CI( $CI, ~ltkCI ) ▶₃ #i
+4: !KU( sign(<'credential', $CI, 'PII-dataset', pk(~skH)>, ~ltkCI)) @ #vk
+5: !KU( penc(<'credential-req',            aToken(~atSecret, pk(~skDPoP), $CI, $AS),            sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP), jti_c,                  aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,                ~skDPoP),            pk(~skH),            sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat>, ~skH),            'crypt-resp', pkE_W>,          pk(~skR_CI.1), rEnc.1)) @ #vk.6
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+4
+5
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( penc(<'def-req', aToken(~atSecret, pk(~skDPoP), $CI, $AS),            sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(~skDPoP), jti_d,                  aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,                ~skDPoP),            ~tid_ci, 'crypt-resp', pkE_Adv>,          pk(~skR_CI), rEnc)) @ #vk.3
+1: !CI_ReqEncSk( $CI, ~skR_CI ) ▶₁ #i
+2: !Ltk_CI( $CI, ~ltkCI ) ▶₃ #i
+3: !KU( sign(<'credential', $CI, 'PII-dataset', pk(~skH)>, ~ltkCI)) @ #vk
+4: !KU( penc(<'credential-req',            aToken(~atSecret, pk(~skDPoP), $CI, $AS),            sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP), jti_c,                  aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,                ~skDPoP),            pk(~skH),            sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat>, ~skH),            'crypt-resp', pkE_W>,          pk(~skR_CI.1), rEnc.1)) @ #vk.6
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+4
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( penc(<'credential-req',            aToken(~atSecret, pk(~skDPoP), $CI, $AS),            sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP), jti_c.1,                  aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,                ~skDPoP),            pk(skH_x),            sign(<'openid4vci-proof+jwt', 'ES256', pk(skH_x), $CI, iat.1>,                skH_x),            'crypt-resp', pk(~skE_W)>,          pk(~skR_CI), rEnc.2)) @ #vk.6
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !CI_ReqEncSk( $CI, ~skR_CI ) ▶₁ #i
+1: !Ltk_CI( $CI, ~ltkCI ) ▶₃ #i
+2: !KU( sign(<'credential', $CI, 'PII-dataset', pk(~skH)>, ~ltkCI)) @ #vk.1
+3: !KU( penc(<'credential-req',            aToken(~atSecret, pk(~skDPoP), $CI, $AS),            sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP), jti_c,                  aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,                ~skDPoP),            pk(~skH),            sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat>, ~skH),            'crypt-resp', pkE_W>,          pk(~skR_CI), rEnc.1)) @ #vk.6
+4: !KU( penc(<'202-deferred', ~tid_ci>, pk(~skE_W), rRespEnc.2)) @ #vk.7
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+4
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( penc(<'credential-req',            aToken(~atSecret, pk(~skDPoP), $CI, $AS),            sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP), jti_c.1,                  aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,                ~skDPoP),            pk(skH_x),            sign(<'openid4vci-proof+jwt', 'ES256', pk(skH_x), $CI, iat.1>,                skH_x),            'crypt-resp', pkE_W>,          pk(~skR_CI), rEnc.2)) @ #vk.6
+1: !KU( pk(~skE_W) ) @ #vk.8
+2: !KU( ~tid_ci ) @ #vk.11
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+1
+0
+2
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !Ltk_CI( $CI, ~ltkCI ) ▶₃ #i
+1: !KU( sign(<'credential', $CI, 'PII-dataset', pk(~skH)>, ~ltkCI)) @ #vk.2
+2: !KU( penc(<'credential-req',            aToken(~atSecret, pk(~skDPoP), $CI, $AS),            sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP), jti_c,                  aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,                ~skDPoP),            pk(~skH),            sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat>, ~skH),            'crypt-resp', pkE_W>,          pk(~skR_CI), rEnc.1)) @ #vk.6
+3: !KU( penc(<'202-deferred', ~tid_ci>, pk(~skE_W), rRespEnc.2)) @ #vk.7
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( sign(<'credential', $CI, 'PII-dataset', pk(~skH)>, ~ltkCI)) @ #vk.2
+1: !KU( penc(<'credential-req',            aToken(~atSecret, pk(~skDPoP), $CI, $AS),            sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP), jti_c,                  aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,                ~skDPoP),            pk(~skH),            sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat>, ~skH),            'crypt-resp', pkE_W>,          pk(~skR_CI), rEnc.1)) @ #vk.6
+2: !KU( penc(<'202-deferred', ~tid_ci>, pk(~skE_W), rRespEnc.2)) @ #vk.7
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( penc(<'credential-req',            aToken(~atSecret, pk(~skDPoP), $CI, $AS),            sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP), jti_c,                  aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,                ~skDPoP),            pk(~skH),            sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat>, ~skH),            'crypt-resp', pkE_W>,          pk(~skR_CI), rEnc.1)) @ #vk.8
+1: !KU( penc(<'202-deferred', ~tid_ci>, pk(~skE_W), rRespEnc.2)) @ #vk.9
+2: !KU( penc(<'def-req',            aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2),            sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(~skDPoP.2), jti_d.1,                  aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2)>,                ~skDPoP.2),            ~tid_ci.1, 'crypt-resp', pk(k.1)>,          pk(~skR_CI), rEnc.3)) @ #vk.10
+3: !KU( penc(<'credential-req',            aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2),            sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),                  jti_c.2, aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2)>,                ~skDPoP.2),            pk(~skH),            sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.2>,                ~skH),            'crypt-resp', pkE_W.1>,          pk(~skR_CI), rEnc.4)) @ #vk.12
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( penc(<'credential-req',            aToken(~atSecret, pk(~skDPoP), $CI, $AS),            sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP), jti_c.1,                  aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,                ~skDPoP),            pk(skH_x),            sign(<'openid4vci-proof+jwt', 'ES256', pk(skH_x), $CI, iat.1>,                skH_x),            'crypt-resp', pkE_W>,          pk(~skR_CI), rEnc.2)) @ #vk.7
+1: !KU( ~tid_ci ) @ #vk.11
+2: !KU( ~skE_W ) @ #vk.12
+3: !StoredWalletEncKey( $Wid, ~skE, pk(~skE_W) ) ▶₀ #l
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+3
+1
+2
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( penc(<'202-deferred', ~tid_ci>, pk(~skE_W), rRespEnc.3)) @ #vk.9
+1: !KU( penc(<'def-req',            aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2),            sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(~skDPoP.2), jti_d.1,                  aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2)>,                ~skDPoP.2),            ~tid_ci.1, 'crypt-resp', pk(k.1)>,          pk(~skR_CI), rEnc.2)) @ #vk.10
+2: !KU( penc(<'credential-req',            aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2),            sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),                  jti_c.1, aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2)>,                ~skDPoP.2),            pk(~skH),            sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.1>,                ~skH),            'crypt-resp', pkE_W>,          pk(~skR_CI), rEnc.3)) @ #vk.12
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !CI_ReqEncSk( $CI, ~skR_CI ) ▶₁ #i
+1: !CI_PendingTx_Vuln( $CI, tid, AT, $AS, $Wid_at, pk(skDPoP_x), pkH) ▶₂ #i
+2: !Ltk_CI( $CI, ~ltkCI ) ▶₃ #i
+3: !KU( pk(~skR_CI) ) @ #vk.4
+4: !KU( sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(skDPoP_x),            jti_d, AT>,          skDPoP_x)) @ #vk.10
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+3
+0
+1
+2
+4
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( penc(<'def-req',            aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2),            sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(~skDPoP.2), jti_d.1,                  aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2)>,                ~skDPoP.2),            ~tid_ci.1, 'crypt-resp', pk(k.1)>,          pk(~skR_CI), rEnc.2)) @ #vk.10
+1: !KU( penc(<'credential-req',            aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2),            sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),                  jti_c.1, aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2)>,                ~skDPoP.2),            pk(~skH),            sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.1>,                ~skH),            'crypt-resp', pkE_W>,          pk(~skR_CI), rEnc.3)) @ #vk.12
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !CI_ReqEncSk( $CI, ~skR_CI ) ▶₁ #i
+1: !CI_PendingTx_Vuln( $CI, tid, AT, $AS, $Wid_at, pk(skDPoP_x), pkH) ▶₂ #i
+2: !Ltk_CI( $CI, ~ltkCI ) ▶₃ #i
+3: !KU( sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(skDPoP_x),            jti_d, AT>,          skDPoP_x)) @ #vk.10
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !CI_PendingTx_Vuln( $CI, tid, AT, $AS, $Wid_at, pk(skDPoP_x), pkH) ▶₂ #i
+1: !Ltk_CI( $CI, ~ltkCI ) ▶₃ #i
+2: !KU( sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(skDPoP_x),            jti_d, AT>,          skDPoP_x)) @ #vk.10
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !Ltk_CI( $CI, ~ltkCI ) ▶₃ #i
+1: !KU( sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(~skDPoP),            jti_d, aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,          ~skDPoP)) @ #vk.10
+2: !KU( penc(<'credential-req',            aToken(~atSecret, pk(~skDPoP), $CI, $AS),            sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP), jti_c,                  aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,                ~skDPoP),            pk(skH_x),            sign(<'openid4vci-proof+jwt', 'ES256', pk(skH_x), $CI, iat>,                skH_x),            'crypt-resp', pkE_W>,          pk(~skR_CI), rEnc.1)) @ #vk.18
+3: !KU( aToken(~atSecret, pk(~skDPoP), $CI, $AS) ) @ #vk.8
+4: !KU( ~tid_ci ) @ #vk.12
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+4
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(~skDPoP),            jti_d, aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,          ~skDPoP)) @ #vk.10
+1: !KU( penc(<'credential-req',            aToken(~atSecret, pk(~skDPoP), $CI, $AS),            sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP), jti_c,                  aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,                ~skDPoP),            pk(skH_x),            sign(<'openid4vci-proof+jwt', 'ES256', pk(skH_x), $CI, iat>,                skH_x),            'crypt-resp', pkE_W>,          pk(~skR_CI), rEnc.1)) @ #vk.18
+2: !KU( aToken(~atSecret, pk(~skDPoP), $CI, $AS) ) @ #vk.8
+3: !KU( ~tid_ci ) @ #vk.12
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( penc(<'credential-req',            aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2),            sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),                  jti_c.1, aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2)>,                ~skDPoP.2),            pk(~skH),            sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.1>,                ~skH),            'crypt-resp', pkE_W>,          pk(~skR_CI), rEnc.3)) @ #vk.12
+1: !KU( penc(<'202-deferred', ~tid_ci.1>, pk(~skE_W.1), rRespEnc.4)) @ #vk.13
+2: !KU( ~skE_W.1 ) @ #vk.11
+3: !StoredWalletEncKey( $Wid_at, ~skE, pk(~skE_W.1) ) ▶₀ #l
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+3
+2
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( penc(<'credential-req',            aToken(~atSecret, pk(~skDPoP), $CI, $AS),            sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP), jti_c,                  aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,                ~skDPoP),            pk(skH_x),            sign(<'openid4vci-proof+jwt', 'ES256', pk(skH_x), $CI, iat>,                skH_x),            'crypt-resp', pkE_W>,          pk(~skR_CI), rEnc.1)) @ #vk.19
+1: !KU( aToken(~atSecret, pk(~skDPoP), $CI, $AS) ) @ #vk.9
+2: !KU( ~tid_ci ) @ #vk.13
+3: !KU( ~skDPoP ) @ #vk.21
+4: !KU( pk(~skDPoP) ) @ #vk.30
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+4
+0
+1
+2
+3
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( penc(<'credential-req',            aToken(~atSecret, pk(~skDPoP), $CI, $AS),            sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP), jti_c,                  aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,                ~skDPoP),            pk(skH_x),            sign(<'openid4vci-proof+jwt', 'ES256', pk(skH_x), $CI, iat>,                skH_x),            'crypt-resp', pkE_W>,          pk(~skR_CI), rEnc.1)) @ #vk.21
+1: !KU( aToken(~atSecret, pk(~skDPoP), $CI, $AS) ) @ #vk.11
+2: !KU( ~tid_ci ) @ #vk.15
+3: !KU( ~skDPoP ) @ #vk.23
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( penc(<'202-deferred', ~tid_ci.1>, pk(~skE_W.1), rRespEnc.4)) @ #vk.13
+1: !KU( ~skE_W.1 ) @ #vk.6
+2: !StoredWalletEncKey( $Wid_at, ~skE, pk(~skE_W.1) ) ▶₀ #l
+3: !KU( pk(~skR_CI) ) @ #vk.15
+4: !KU( aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1) ) @ #vk.19
+5: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),            jti_c.1, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.21
+6: !KU( pk(~skH) ) @ #vk.23
+7: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.1>,          ~skH)) @ #vk.25
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+2
+3
+4
+5
+6
+7
+1
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !CI_ReqEncSk( $CI, ~skR_CI ) ▶₁ #i
+1: !CI_PendingTx_Vuln( $CI, tid, AT, $AS, $Wid_at, pk(skDPoP_x), pkH) ▶₂ #i
+2: !Ltk_CI( $CI, ~ltkCI ) ▶₃ #i
+3: !KU( sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(skDPoP_x),            jti_d, AT>,          skDPoP_x)) @ #vk.10
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !CI_ReqEncSk( $CI, ~skR_CI ) ▶₁ #i
+1: !CI_PendingTx_Vuln( $CI, tid, AT, $AS, $Wid_at, pk(skDPoP_x), pkH) ▶₂ #i
+2: !Ltk_CI( $CI, ~ltkCI ) ▶₃ #i
+3: !KU( sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(skDPoP_x),            jti_d, AT>,          skDPoP_x)) @ #vk.10
+4: !KU( ~skR_CI.1 ) @ #vk.16
+5: !CI_ReqEncSk( $CI.1, ~skR ) ▶₀ #l
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+5
+4
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !CI_ReqEncSk( $CI, ~skR_CI ) ▶₁ #i
+1: !CI_PendingTx_Vuln( $CI, tid, AT, $AS, $Wid_at, pk(skDPoP_x), pkH) ▶₂ #i
+2: !Ltk_CI( $CI, ~ltkCI ) ▶₃ #i
+3: !KU( sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(skDPoP_x),            jti_d, AT>,          skDPoP_x)) @ #vk.10
+4: !KU( ~skR_CI.1 ) @ #vk.16
+5: !CI_ReqEncSk( $CI.1, ~skR ) ▶₀ #l
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+5
+4
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !CI_ReqEncSk( $CI, ~skR_CI ) ▶₁ #i
+1: !CI_PendingTx_Vuln( $CI, tid, AT, $AS, $Wid_at, pk(skDPoP_x), pkH) ▶₂ #i
+2: !Ltk_CI( $CI, ~ltkCI ) ▶₃ #i
+3: !KU( sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(skDPoP_x),            jti_d, AT>,          skDPoP_x)) @ #vk.10
+4: !KU( ~skR_CI.1 ) @ #vk.16
+5: !KU( penc(<'202-deferred', tid.1>, pk(~skR_CI), rRespEnc.1)) @ #vk.17
+6: !CI_ReqEncSk( $CI.1, ~skR ) ▶₀ #l
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+5
+6
+4
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !CI_ReqEncSk( $CI, ~skR_CI ) ▶₁ #i
+1: !CI_PendingTx_Vuln( $CI, tid, AT, $AS, $Wid_at, pk(skDPoP_x), pkH) ▶₂ #i
+2: !Ltk_CI( $CI, ~ltkCI ) ▶₃ #i
+3: !KU( sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(skDPoP_x),            jti_d, AT>,          skDPoP_x)) @ #vk.10
+4: !KU( ~skR_CI ) @ #vk.16
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+4
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( ~skE_W.1 ) @ #vk.7
+1: !StoredWalletEncKey( $Wid_at, ~skE, pk(~skE_W.1) ) ▶₀ #l
+2: !KU( pk(~skR_CI) ) @ #vk.15
+3: !KU( aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1) ) @ #vk.19
+4: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),            jti_c.1, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.21
+5: !KU( pk(~skH) ) @ #vk.23
+6: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.1>,          ~skH)) @ #vk.25
+7: !KU( pk(~skE_W.1) ) @ #vk.28
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+1
+2
+3
+4
+5
+6
+7
+0
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( ~skE ) @ #vk.7
+1: !KU( pk(~skR_CI) ) @ #vk.15
+2: !KU( aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1) ) @ #vk.19
+3: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),            jti_c.1, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.21
+4: !KU( pk(~skH) ) @ #vk.23
+5: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.1>,          ~skH)) @ #vk.25
+6: !KU( pk(~skE) ) @ #vk.28
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+1
+2
+3
+4
+5
+6
+0
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( ~skE ) @ #vk.8
+1: !KU( aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1) ) @ #vk.19
+2: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),            jti_c.1, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.21
+3: !KU( pk(~skH) ) @ #vk.23
+4: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.1>,          ~skH)) @ #vk.25
+5: !KU( pk(~skE) ) @ #vk.28
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+1
+2
+3
+4
+5
+0
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( ~skE ) @ #vk.9
+1: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),            jti_c.1, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.21
+2: !KU( pk(~skH) ) @ #vk.23
+3: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.1>,          ~skH)) @ #vk.25
+4: !KU( pk(~skE) ) @ #vk.28
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+1
+2
+3
+4
+0
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( ~skE ) @ #vk.10
+1: !KU( pk(~skH) ) @ #vk.24
+2: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.1>,          ~skH)) @ #vk.26
+3: !KU( pk(~skE) ) @ #vk.29
+4: !KU( ~skDPoP.2 ) @ #vk.31
+5: !KU( pk(~skDPoP.2) ) @ #vk.40
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+1
+2
+3
+5
+0
+4
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( ~skE_W.1 ) @ #vk.7
+1: !StoredWalletEncKey( $Wid_at, ~skE, pk(~skE_W.1) ) ▶₀ #l
+2: !KU( pk(~skR_CI) ) @ #vk.15
+3: !KU( aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1) ) @ #vk.19
+4: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),            jti_c.1, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.21
+5: !KU( pk(~skH) ) @ #vk.23
+6: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.1>,          ~skH)) @ #vk.25
+7: !KU( pk(~skE_W.1) ) @ #vk.30
+8: !KU( ~tid_ci.1 ) @ #vk.33
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+1
+2
+3
+4
+5
+6
+7
+0
+8
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( ~skE ) @ #vk.7
+1: !KU( pk(~skR_CI) ) @ #vk.15
+2: !KU( aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1) ) @ #vk.19
+3: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),            jti_c.1, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.21
+4: !KU( pk(~skH) ) @ #vk.23
+5: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.1>,          ~skH)) @ #vk.25
+6: !KU( pk(~skE) ) @ #vk.30
+7: !KU( ~tid_ci.1 ) @ #vk.33
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+1
+2
+3
+4
+5
+6
+0
+7
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( ~skE ) @ #vk.8
+1: !KU( aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1) ) @ #vk.19
+2: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),            jti_c.1, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.21
+3: !KU( pk(~skH) ) @ #vk.23
+4: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.1>,          ~skH)) @ #vk.25
+5: !KU( pk(~skE) ) @ #vk.30
+6: !KU( ~tid_ci.1 ) @ #vk.33
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+1
+2
+3
+4
+5
+0
+6
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( ~skE ) @ #vk.9
+1: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),            jti_c.1, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.21
+2: !KU( pk(~skH) ) @ #vk.23
+3: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.1>,          ~skH)) @ #vk.25
+4: !KU( pk(~skE) ) @ #vk.30
+5: !KU( ~tid_ci.1 ) @ #vk.33
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+1
+2
+3
+4
+0
+5
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( ~skE ) @ #vk.10
+1: !KU( pk(~skH) ) @ #vk.24
+2: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.1>,          ~skH)) @ #vk.26
+3: !KU( pk(~skE) ) @ #vk.31
+4: !KU( ~tid_ci.1 ) @ #vk.34
+5: !KU( ~skDPoP.2 ) @ #vk.36
+6: !KU( pk(~skDPoP.2) ) @ #vk.45
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+1
+2
+3
+6
+0
+4
+5
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( penc(<'credential-req',            aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2),            sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),                  jti_c.1, aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2)>,                ~skDPoP.2),            pk(~skH),            sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.1>,                ~skH),            'crypt-resp', pkE_W>,          pk(~skR_CI), rEnc.3)) @ #vk.12
+1: !KU( pk(~skR_CI) ) @ #vk.14
+2: !KU( aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2) ) @ #vk.18
+3: !KU( sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(~skDPoP.2),            jti_d.1, aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2)>,          ~skDPoP.2)) @ #vk.20
+4: !KU( ~tid_ci.1 ) @ #vk.22
+5: !KU( pk(k.1) ) @ #vk.25
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+5
+4
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( pk(~skR_CI) ) @ #vk.14
+1: !KU( aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1) ) @ #vk.18
+2: !KU( sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(~skDPoP.2),            jti_d.1, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.21
+3: !KU( ~tid_ci.1 ) @ #vk.23
+4: !KU( pk(k.1) ) @ #vk.27
+5: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),            jti_c.1, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.32
+6: !KU( pk(~skH) ) @ #vk.34
+7: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.1>,          ~skH)) @ #vk.36
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+4
+5
+6
+7
+3
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1) ) @ #vk.18
+1: !KU( sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(~skDPoP.2),            jti_d.1, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.22
+2: !KU( ~tid_ci.1 ) @ #vk.24
+3: !KU( pk(k.1) ) @ #vk.29
+4: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),            jti_c.1, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.33
+5: !KU( pk(~skH) ) @ #vk.35
+6: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.1>,          ~skH)) @ #vk.36
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+3
+4
+5
+6
+2
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(~skDPoP.2),            jti_d.1, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.22
+1: !KU( ~tid_ci.1 ) @ #vk.24
+2: !KU( pk(k.1) ) @ #vk.30
+3: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),            jti_c.1, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.34
+4: !KU( pk(~skH) ) @ #vk.35
+5: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.1>,          ~skH)) @ #vk.36
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+2
+3
+4
+5
+1
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( ~tid_ci.1 ) @ #vk.25
+1: !KU( pk(k.1) ) @ #vk.32
+2: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),            jti_c.1, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.35
+3: !KU( pk(~skH) ) @ #vk.36
+4: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.1>,          ~skH)) @ #vk.37
+5: !KU( ~skDPoP.2 ) @ #vk.40
+6: !KU( pk(~skDPoP.2) ) @ #vk.49
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+1
+2
+3
+4
+6
+0
+5
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( ~tid_ci.1 ) @ #vk.27
+1: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),            jti_c.1, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.36
+2: !KU( pk(~skH) ) @ #vk.37
+3: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.1>,          ~skH)) @ #vk.38
+4: !KU( ~skDPoP.2 ) @ #vk.41
+5: !KU( pk(~skDPoP.2) ) @ #vk.49
+6: !KU( ~skR_CI.1 ) @ #vk.23
+7: !CI_ReqEncSk( $CI.2, ~skR ) ▶₀ #l
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+1
+2
+3
+5
+7
+0
+4
+6
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( ~tid_ci.1 ) @ #vk.31
+1: !KU( pk(~skH) ) @ #vk.39
+2: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.1>,          ~skH)) @ #vk.40
+3: !KU( ~skDPoP.2 ) @ #vk.43
+4: !KU( pk(~skDPoP.2) ) @ #vk.53
+5: !KU( ~skR_CI.1 ) @ #vk.11
+6: !CI_ReqEncSk( $CI.1, ~skR ) ▶₀ #l
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+1
+2
+4
+6
+0
+3
+5
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( ~tid_ci.1 ) @ #vk.27
+1: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),            jti_c.1, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.36
+2: !KU( pk(~skH) ) @ #vk.37
+3: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.1>,          ~skH)) @ #vk.38
+4: !KU( ~skDPoP.2 ) @ #vk.41
+5: !KU( pk(~skDPoP.2) ) @ #vk.49
+6: !KU( ~ltkCI.1 ) @ #vk.23
+7: !Ltk_CI( $CI.2, ~ltkCI.2 ) ▶₀ #l
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+1
+2
+3
+5
+7
+0
+4
+6
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( ~tid_ci.1 ) @ #vk.31
+1: !KU( pk(~skH) ) @ #vk.39
+2: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.1>,          ~skH)) @ #vk.40
+3: !KU( ~skDPoP.2 ) @ #vk.43
+4: !KU( pk(~skDPoP.2) ) @ #vk.53
+5: !KU( ~ltkCI.2 ) @ #vk.11
+6: !Ltk_CI( $CI.1, ~ltkCI.1 ) ▶₀ #l
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+1
+2
+4
+6
+0
+3
+5
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( ~tid_ci.1 ) @ #vk.27
+1: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),            jti_c.1, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.36
+2: !KU( pk(~skH) ) @ #vk.37
+3: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.1>,          ~skH)) @ #vk.38
+4: !KU( ~skDPoP.2 ) @ #vk.41
+5: !KU( pk(~skDPoP.2) ) @ #vk.49
+6: !KU( ~skR_CI.1 ) @ #vk.51
+7: !KU( ~skH.1 ) @ #vk.23
+8: !CI_ReqEncSk( $CI.2, ~skR ) ▶₀ #l
+9: !StoredHolderKey( $Wid.1, ~skH.2, pk(~skH.1) ) ▶₀ #l.1
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+1
+2
+3
+5
+8
+9
+0
+4
+6
+7
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( ~tid_ci.1 ) @ #vk.32
+1: !KU( pk(~skH) ) @ #vk.40
+2: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.1>,          ~skH)) @ #vk.41
+3: !KU( ~skDPoP.2 ) @ #vk.44
+4: !KU( pk(~skDPoP.2) ) @ #vk.54
+5: !KU( ~skR_CI.1 ) @ #vk.11
+6: !KU( ~skH.2 ) @ #vk.13
+7: !CI_ReqEncSk( $CI.1, ~skR ) ▶₀ #l
+8: !StoredHolderKey( $Wid.1, ~skH.1, pk(~skH.2) ) ▶₀ #l.1
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+1
+2
+4
+7
+8
+0
+3
+5
+6
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( ~tid_ci.1 ) @ #vk.27
+1: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),            jti_c.1, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.36
+2: !KU( pk(~skH) ) @ #vk.37
+3: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.1>,          ~skH)) @ #vk.38
+4: !KU( ~skDPoP.2 ) @ #vk.41
+5: !KU( pk(~skDPoP.2) ) @ #vk.49
+6: !KU( ~skR_CI.1 ) @ #vk.51
+7: !KU( ~skE_W.1 ) @ #vk.23
+8: !CI_ReqEncSk( $CI.2, ~skR ) ▶₀ #l
+9: !StoredWalletEncKey( $Wid.1, ~skE, pk(~skE_W.1) ) ▶₀ #l.1
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+1
+2
+3
+5
+8
+9
+0
+4
+6
+7
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( ~tid_ci.1 ) @ #vk.32
+1: !KU( pk(~skH) ) @ #vk.40
+2: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.1>,          ~skH)) @ #vk.41
+3: !KU( ~skDPoP.2 ) @ #vk.44
+4: !KU( pk(~skDPoP.2) ) @ #vk.54
+5: !KU( ~skR_CI.1 ) @ #vk.11
+6: !KU( ~skE_W.1 ) @ #vk.13
+7: !CI_ReqEncSk( $CI.1, ~skR ) ▶₀ #l
+8: !StoredWalletEncKey( $Wid.1, ~skE, pk(~skE_W.1) ) ▶₀ #l.1
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+1
+2
+4
+7
+8
+0
+3
+5
+6
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( ~tid_ci.1 ) @ #vk.27
+1: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),            jti_c.1, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.36
+2: !KU( pk(~skH) ) @ #vk.37
+3: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.1>,          ~skH)) @ #vk.38
+4: !KU( ~skDPoP.2 ) @ #vk.41
+5: !KU( pk(~skDPoP.2) ) @ #vk.49
+6: !KU( ~skR_CI.1 ) @ #vk.51
+7: !KU( penc(<'202-deferred', tid>, pk(~skE_W.1), rRespEnc.4)) @ #vk.52
+8: !KU( ~skE_W.1 ) @ #vk.23
+9: !CI_ReqEncSk( $CI.2, ~skR ) ▶₀ #l
+10: !StoredWalletEncKey( $Wid.1, ~skE, pk(~skE_W.1) ) ▶₀ #l.1
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+1
+2
+3
+5
+7
+9
+10
+0
+4
+6
+8
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( ~tid_ci.1 ) @ #vk.32
+1: !KU( pk(~skH) ) @ #vk.40
+2: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.1>,          ~skH)) @ #vk.41
+3: !KU( ~skDPoP.2 ) @ #vk.44
+4: !KU( pk(~skDPoP.2) ) @ #vk.54
+5: !KU( ~skR_CI.1 ) @ #vk.11
+6: !KU( penc(<'202-deferred', tid>, pk(~skE_W.1), rRespEnc.4)) @ #vk.57
+7: !KU( ~skE_W.1 ) @ #vk.13
+8: !CI_ReqEncSk( $CI.1, ~skR ) ▶₀ #l
+9: !StoredWalletEncKey( $Wid.1, ~skE, pk(~skE_W.1) ) ▶₀ #l.1
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+1
+2
+4
+6
+8
+9
+0
+3
+5
+7
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( ~tid_ci.1 ) @ #vk.27
+1: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),            jti_c.1, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.36
+2: !KU( pk(~skH) ) @ #vk.37
+3: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.1>,          ~skH)) @ #vk.38
+4: !KU( ~skDPoP.2 ) @ #vk.41
+5: !KU( pk(~skDPoP.2) ) @ #vk.49
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+1
+2
+3
+5
+0
+4
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( ~tid_ci.1 ) @ #vk.31
+1: !KU( pk(~skH) ) @ #vk.39
+2: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.1>,          ~skH)) @ #vk.40
+3: !KU( ~skDPoP.2 ) @ #vk.43
+4: !KU( pk(~skDPoP.2) ) @ #vk.53
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+1
+2
+4
+0
+3
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( penc(<'def-req',            aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2),            sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(~skDPoP.2), jti_d.1,                  aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2)>,                ~skDPoP.2),            ~tid_ci.1, 'crypt-resp', pk(k.1)>,          pk(~skR_CI), rEnc.2)) @ #vk.10
+1: !KU( penc(<'credential-req',            aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2),            sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),                  jti_c.1, aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2)>,                ~skDPoP.2),            pk(~skH),            sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.1>,                ~skH),            'crypt-resp', pkE_W>,          pk(~skR_CI), rEnc.3)) @ #vk.12
+2: !KU( pk(~skE_W) ) @ #vk.14
+3: !KU( ~tid_ci ) @ #vk.17
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( penc(<'credential-req',            aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2),            sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),                  jti_c.1, aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2)>,                ~skDPoP.2),            pk(~skH),            sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.1>,                ~skH),            'crypt-resp', pkE_W>,          pk(~skR_CI), rEnc.3)) @ #vk.12
+1: !KU( pk(~skE_W) ) @ #vk.14
+2: !KU( ~tid_ci ) @ #vk.17
+3: !KU( penc(<'202-deferred', ~tid_ci.1>, pk(~skE_W.1), rRespEnc.5)) @ #vk.18
+4: !KU( ~skE_W.1 ) @ #vk.11
+5: !StoredWalletEncKey( $Wid_at, ~skE, pk(~skE_W.1) ) ▶₀ #l
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+3
+5
+2
+4
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( pk(~skE_W) ) @ #vk.14
+1: !KU( ~tid_ci ) @ #vk.17
+2: !KU( penc(<'202-deferred', ~tid_ci.1>, pk(~skE_W.1), rRespEnc.5)) @ #vk.18
+3: !KU( ~skE_W.1 ) @ #vk.6
+4: !StoredWalletEncKey( $Wid_at, ~skE, pk(~skE_W.1) ) ▶₀ #l
+5: !KU( pk(~skR_CI) ) @ #vk.20
+6: !KU( aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1) ) @ #vk.24
+7: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),            jti_c.1, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.26
+8: !KU( pk(~skH) ) @ #vk.28
+9: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.1>,          ~skH)) @ #vk.30
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+2
+4
+5
+6
+7
+8
+9
+1
+3
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( penc(<'credential-req',            aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2),            sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),                  jti_c.1, aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2)>,                ~skDPoP.2),            pk(~skH),            sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.1>,                ~skH),            'crypt-resp', pkE_W>,          pk(~skR_CI), rEnc.3)) @ #vk.12
+1: !KU( pk(~skE_W) ) @ #vk.14
+2: !KU( ~tid_ci ) @ #vk.17
+3: !KU( pk(~skR_CI) ) @ #vk.19
+4: !KU( aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2) ) @ #vk.23
+5: !KU( sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(~skDPoP.2),            jti_d.1, aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2)>,          ~skDPoP.2)) @ #vk.25
+6: !KU( ~tid_ci.1 ) @ #vk.27
+7: !KU( pk(k.1) ) @ #vk.30
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+3
+4
+5
+7
+2
+6
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( pk(~skE_W) ) @ #vk.14
+1: !KU( ~tid_ci ) @ #vk.17
+2: !KU( pk(~skR_CI) ) @ #vk.19
+3: !KU( aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1) ) @ #vk.23
+4: !KU( sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(~skDPoP.2),            jti_d.1, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.26
+5: !KU( ~tid_ci.1 ) @ #vk.28
+6: !KU( pk(k.1) ) @ #vk.32
+7: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),            jti_c.1, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.37
+8: !KU( pk(~skH) ) @ #vk.39
+9: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.1>,          ~skH)) @ #vk.41
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+2
+3
+4
+6
+7
+8
+9
+1
+5
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( penc(<'202-deferred', ~tid_ci>, pk(~skE_W), rRespEnc.3)) @ #vk.9
+1: !KU( penc(<'def-req',            aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2),            sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(~skDPoP.2), jti_d.1,                  aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2)>,                ~skDPoP.2),            ~tid_ci.1, 'crypt-resp', pk(k.1)>,          pk(~skR_CI), rEnc.3)) @ #vk.10
+2: !KU( penc(<'credential-req',            aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2),            sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),                  jti_c.2, aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2)>,                ~skDPoP.2),            pk(~skH),            sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.2>,                ~skH),            'crypt-resp', pkE_W.1>,          pk(~skR_CI), rEnc.4)) @ #vk.12
+3: !KU( pk(~skR_CI) ) @ #vk.14
+4: !KU( aToken(~atSecret, pk(~skDPoP), $CI, $AS) ) @ #vk.18
+5: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP),            jti_c, aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,          ~skDPoP)) @ #vk.20
+6: !KU( pk(~skH) ) @ #vk.22
+7: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat>,          ~skH)) @ #vk.24
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+4
+5
+6
+7
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( penc(<'def-req',            aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2),            sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(~skDPoP.2), jti_d.1,                  aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2)>,                ~skDPoP.2),            ~tid_ci.1, 'crypt-resp', pk(k.1)>,          pk(~skR_CI), rEnc.3)) @ #vk.10
+1: !KU( penc(<'credential-req',            aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2),            sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),                  jti_c.2, aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2)>,                ~skDPoP.2),            pk(~skH),            sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.2>,                ~skH),            'crypt-resp', pkE_W>,          pk(~skR_CI), rEnc.4)) @ #vk.12
+2: !KU( pk(~skR_CI) ) @ #vk.14
+3: !KU( aToken(~atSecret, pk(~skDPoP), $CI, $AS) ) @ #vk.18
+4: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP),            jti_c, aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,          ~skDPoP)) @ #vk.20
+5: !KU( pk(~skH) ) @ #vk.22
+6: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat>,          ~skH)) @ #vk.24
+7: !KU( pk(~skE_W) ) @ #vk.27
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+4
+5
+6
+7
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( penc(<'credential-req',            aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2),            sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),                  jti_c.2, aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2)>,                ~skDPoP.2),            pk(~skH),            sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.2>,                ~skH),            'crypt-resp', pkE_W>,          pk(~skR_CI), rEnc.4)) @ #vk.12
+1: !KU( pk(~skR_CI) ) @ #vk.14
+2: !KU( aToken(~atSecret, pk(~skDPoP), $CI, $AS) ) @ #vk.18
+3: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP),            jti_c, aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,          ~skDPoP)) @ #vk.20
+4: !KU( pk(~skH) ) @ #vk.22
+5: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat>,          ~skH)) @ #vk.24
+6: !KU( pk(~skE_W) ) @ #vk.27
+7: !KU( penc(<'202-deferred', ~tid_ci.1>, pk(~skE_W.1), rRespEnc.4)) @ #vk.28
+8: !KU( ~skE_W.1 ) @ #vk.11
+9: !StoredWalletEncKey( $Wid_at, ~skE, pk(~skE_W.1) ) ▶₀ #l
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+4
+5
+6
+7
+9
+8
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( pk(~skR_CI) ) @ #vk.14
+1: !KU( aToken(~atSecret, pk(~skDPoP), $CI, $AS) ) @ #vk.19
+2: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP),            jti_c, aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,          ~skDPoP)) @ #vk.21
+3: !KU( pk(~skH) ) @ #vk.23
+4: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat>,          ~skH)) @ #vk.26
+5: !KU( pk(~skE_W) ) @ #vk.30
+6: !KU( penc(<'202-deferred', ~tid_ci.1>, pk(~skE_W.1), rRespEnc.4)) @ #vk.31
+7: !KU( ~skE_W.1 ) @ #vk.6
+8: !StoredWalletEncKey( $Wid_at, ~skE, pk(~skE_W.1) ) ▶₀ #l
+9: !KU( aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1) ) @ #vk.34
+10: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),            jti_c.2, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.36
+11: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.2>,          ~skH)) @ #vk.38
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+4
+5
+6
+8
+9
+10
+11
+7
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( aToken(~atSecret, pk(~skDPoP), $CI, $AS) ) @ #vk.19
+1: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP),            jti_c, aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,          ~skDPoP)) @ #vk.21
+2: !KU( pk(~skH) ) @ #vk.23
+3: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat>,          ~skH)) @ #vk.27
+4: !KU( pk(~skE_W) ) @ #vk.32
+5: !KU( penc(<'202-deferred', ~tid_ci.1>, pk(~skE_W.1), rRespEnc.4)) @ #vk.33
+6: !KU( ~skE_W.1 ) @ #vk.7
+7: !StoredWalletEncKey( $Wid_at, ~skE, pk(~skE_W.1) ) ▶₀ #l
+8: !KU( aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1) ) @ #vk.36
+9: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),            jti_c.2, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.37
+10: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.2>,          ~skH)) @ #vk.38
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+4
+5
+7
+8
+9
+10
+6
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP),            jti_c, aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,          ~skDPoP)) @ #vk.21
+1: !KU( pk(~skH) ) @ #vk.23
+2: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat>,          ~skH)) @ #vk.28
+3: !KU( pk(~skE_W) ) @ #vk.33
+4: !KU( penc(<'202-deferred', ~tid_ci.1>, pk(~skE_W.1), rRespEnc.4)) @ #vk.34
+5: !KU( ~skE_W.1 ) @ #vk.8
+6: !StoredWalletEncKey( $Wid_at, ~skE, pk(~skE_W.1) ) ▶₀ #l
+7: !KU( aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1) ) @ #vk.36
+8: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),            jti_c.2, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.37
+9: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.2>,          ~skH)) @ #vk.38
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+4
+6
+7
+8
+9
+5
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( pk(~skH) ) @ #vk.24
+1: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat>,          ~skH)) @ #vk.29
+2: !KU( pk(~skE_W) ) @ #vk.34
+3: !KU( penc(<'202-deferred', ~tid_ci.1>, pk(~skE_W.1), rRespEnc.4)) @ #vk.35
+4: !KU( ~skE_W.1 ) @ #vk.9
+5: !StoredWalletEncKey( $Wid_at, ~skE, pk(~skE_W.1) ) ▶₀ #l
+6: !KU( aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1) ) @ #vk.37
+7: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),            jti_c.2, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.38
+8: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.2>,          ~skH)) @ #vk.39
+9: !KU( ~skDPoP ) @ #vk.42
+10: !KU( pk(~skDPoP) ) @ #vk.51
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+5
+6
+7
+8
+10
+4
+9
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( penc(<'credential-req',            aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2),            sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),                  jti_c.2, aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2)>,                ~skDPoP.2),            pk(~skH),            sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.2>,                ~skH),            'crypt-resp', pkE_W>,          pk(~skR_CI), rEnc.4)) @ #vk.12
+1: !KU( pk(~skR_CI) ) @ #vk.14
+2: !KU( aToken(~atSecret, pk(~skDPoP), $CI, $AS) ) @ #vk.18
+3: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP),            jti_c, aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,          ~skDPoP)) @ #vk.20
+4: !KU( pk(~skH) ) @ #vk.22
+5: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat>,          ~skH)) @ #vk.24
+6: !KU( pk(~skE_W) ) @ #vk.28
+7: !KU( aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2) ) @ #vk.33
+8: !KU( sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(~skDPoP.2),            jti_d.1, aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2)>,          ~skDPoP.2)) @ #vk.35
+9: !KU( ~tid_ci.1 ) @ #vk.37
+10: !KU( pk(k.1) ) @ #vk.38
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+4
+5
+6
+7
+8
+10
+9
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( pk(~skR_CI) ) @ #vk.14
+1: !KU( aToken(~atSecret, pk(~skDPoP), $CI, $AS) ) @ #vk.18
+2: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP),            jti_c, aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,          ~skDPoP)) @ #vk.21
+3: !KU( pk(~skH) ) @ #vk.23
+4: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat>,          ~skH)) @ #vk.25
+5: !KU( pk(~skE_W) ) @ #vk.30
+6: !KU( sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(~skDPoP),            jti_d.1, aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,          ~skDPoP)) @ #vk.35
+7: !KU( ~tid_ci.1 ) @ #vk.36
+8: !KU( pk(k.1) ) @ #vk.37
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+4
+5
+6
+8
+7
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( aToken(~atSecret, pk(~skDPoP), $CI, $AS) ) @ #vk.18
+1: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP),            jti_c, aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,          ~skDPoP)) @ #vk.22
+2: !KU( pk(~skH) ) @ #vk.24
+3: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat>,          ~skH)) @ #vk.26
+4: !KU( pk(~skE_W) ) @ #vk.32
+5: !KU( sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(~skDPoP),            jti_d.1, aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,          ~skDPoP)) @ #vk.35
+6: !KU( ~tid_ci.1 ) @ #vk.36
+7: !KU( pk(k.1) ) @ #vk.37
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+4
+5
+7
+6
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP),            jti_c, aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,          ~skDPoP)) @ #vk.22
+1: !KU( pk(~skH) ) @ #vk.24
+2: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat>,          ~skH)) @ #vk.26
+3: !KU( pk(~skE_W) ) @ #vk.32
+4: !KU( sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(~skDPoP),            jti_d.1, aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,          ~skDPoP)) @ #vk.35
+5: !KU( ~tid_ci.1 ) @ #vk.36
+6: !KU( pk(k.1) ) @ #vk.37
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+4
+6
+5
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( pk(~skH) ) @ #vk.25
+1: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat>,          ~skH)) @ #vk.27
+2: !KU( pk(~skE_W) ) @ #vk.33
+3: !KU( sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(~skDPoP),            jti_d.1, aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,          ~skDPoP)) @ #vk.36
+4: !KU( ~tid_ci.1 ) @ #vk.37
+5: !KU( pk(k.1) ) @ #vk.38
+6: !KU( ~skDPoP ) @ #vk.40
+7: !KU( pk(~skDPoP) ) @ #vk.49
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+5
+7
+4
+6
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( pk(~skR_CI) ) @ #vk.14
+1: !KU( aToken(~atSecret, pk(~skDPoP), $CI, $AS) ) @ #vk.19
+2: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP),            jti_c, aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,          ~skDPoP)) @ #vk.21
+3: !KU( pk(~skH) ) @ #vk.23
+4: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat>,          ~skH)) @ #vk.26
+5: !KU( pk(~skE_W) ) @ #vk.32
+6: !KU( aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1) ) @ #vk.37
+7: !KU( sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(~skDPoP.2),            jti_d.1, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.40
+8: !KU( ~tid_ci.1 ) @ #vk.41
+9: !KU( pk(k.1) ) @ #vk.42
+10: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),            jti_c.2, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.45
+11: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.2>,          ~skH)) @ #vk.47
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+4
+5
+6
+7
+9
+10
+11
+8
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( aToken(~atSecret, pk(~skDPoP), $CI, $AS) ) @ #vk.19
+1: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP),            jti_c, aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,          ~skDPoP)) @ #vk.21
+2: !KU( pk(~skH) ) @ #vk.23
+3: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat>,          ~skH)) @ #vk.27
+4: !KU( pk(~skE_W) ) @ #vk.35
+5: !KU( aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1) ) @ #vk.40
+6: !KU( sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(~skDPoP.2),            jti_d.1, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.42
+7: !KU( ~tid_ci.1 ) @ #vk.43
+8: !KU( pk(k.1) ) @ #vk.44
+9: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),            jti_c.2, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.46
+10: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.2>,          ~skH)) @ #vk.47
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+4
+5
+6
+8
+9
+10
+7
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP),            jti_c, aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,          ~skDPoP)) @ #vk.21
+1: !KU( pk(~skH) ) @ #vk.23
+2: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat>,          ~skH)) @ #vk.28
+3: !KU( pk(~skE_W) ) @ #vk.37
+4: !KU( aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1) ) @ #vk.41
+5: !KU( sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(~skDPoP.2),            jti_d.1, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.42
+6: !KU( ~tid_ci.1 ) @ #vk.43
+7: !KU( pk(k.1) ) @ #vk.44
+8: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),            jti_c.2, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.46
+9: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.2>,          ~skH)) @ #vk.47
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+4
+5
+7
+8
+9
+6
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( pk(~skH) ) @ #vk.24
+1: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat>,          ~skH)) @ #vk.29
+2: !KU( pk(~skE_W) ) @ #vk.39
+3: !KU( aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1) ) @ #vk.42
+4: !KU( sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(~skDPoP.2),            jti_d.1, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.43
+5: !KU( ~tid_ci.1 ) @ #vk.44
+6: !KU( pk(k.1) ) @ #vk.45
+7: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),            jti_c.2, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.47
+8: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.2>,          ~skH)) @ #vk.48
+9: !KU( ~skDPoP ) @ #vk.51
+10: !KU( pk(~skDPoP) ) @ #vk.60
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+4
+6
+7
+8
+10
+5
+9
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( penc(<'def-req',            aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2),            sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(~skDPoP.2), jti_d.1,                  aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2)>,                ~skDPoP.2),            ~tid_ci.1, 'crypt-resp', pk(k.1)>,          pk(~skR_CI), rEnc.3)) @ #vk.10
+1: !KU( penc(<'credential-req',            aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2),            sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),                  jti_c.2, aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2)>,                ~skDPoP.2),            pk(~skH),            sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.2>,                ~skH),            'crypt-resp', pkE_W.1>,          pk(~skR_CI), rEnc.4)) @ #vk.12
+2: !KU( pk(~skR_CI) ) @ #vk.14
+3: !KU( aToken(~atSecret, pk(~skDPoP), $CI, $AS) ) @ #vk.18
+4: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP),            jti_c, aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,          ~skDPoP)) @ #vk.20
+5: !KU( pk(~skH) ) @ #vk.22
+6: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat>,          ~skH)) @ #vk.24
+7: !KU( pk(~skE_W) ) @ #vk.29
+8: !KU( ~tid_ci ) @ #vk.32
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+4
+5
+6
+7
+8
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( penc(<'credential-req',            aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2),            sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),                  jti_c.2, aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2)>,                ~skDPoP.2),            pk(~skH),            sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.2>,                ~skH),            'crypt-resp', pkE_W.1>,          pk(~skR_CI), rEnc.4)) @ #vk.12
+1: !KU( pk(~skR_CI) ) @ #vk.14
+2: !KU( aToken(~atSecret, pk(~skDPoP), $CI, $AS) ) @ #vk.18
+3: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP),            jti_c, aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,          ~skDPoP)) @ #vk.20
+4: !KU( pk(~skH) ) @ #vk.22
+5: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat>,          ~skH)) @ #vk.24
+6: !KU( pk(~skE_W) ) @ #vk.29
+7: !KU( ~tid_ci ) @ #vk.32
+8: !KU( penc(<'202-deferred', ~tid_ci.1>, pk(~skE_W.1), rRespEnc.5)) @ #vk.33
+9: !KU( ~skE_W.1 ) @ #vk.11
+10: !StoredWalletEncKey( $Wid_at, ~skE, pk(~skE_W.1) ) ▶₀ #l
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+4
+5
+6
+8
+10
+7
+9
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( pk(~skR_CI) ) @ #vk.14
+1: !KU( aToken(~atSecret, pk(~skDPoP), $CI, $AS) ) @ #vk.19
+2: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP),            jti_c, aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,          ~skDPoP)) @ #vk.21
+3: !KU( pk(~skH) ) @ #vk.23
+4: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat>,          ~skH)) @ #vk.26
+5: !KU( pk(~skE_W) ) @ #vk.32
+6: !KU( ~tid_ci ) @ #vk.35
+7: !KU( penc(<'202-deferred', ~tid_ci.1>, pk(~skE_W.1), rRespEnc.5)) @ #vk.36
+8: !KU( ~skE_W.1 ) @ #vk.6
+9: !StoredWalletEncKey( $Wid_at, ~skE, pk(~skE_W.1) ) ▶₀ #l
+10: !KU( aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1) ) @ #vk.39
+11: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),            jti_c.2, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.41
+12: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.2>,          ~skH)) @ #vk.43
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+4
+5
+7
+9
+10
+11
+12
+6
+8
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( aToken(~atSecret, pk(~skDPoP), $CI, $AS) ) @ #vk.19
+1: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP),            jti_c, aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,          ~skDPoP)) @ #vk.21
+2: !KU( pk(~skH) ) @ #vk.23
+3: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat>,          ~skH)) @ #vk.27
+4: !KU( pk(~skE_W) ) @ #vk.34
+5: !KU( ~tid_ci ) @ #vk.37
+6: !KU( penc(<'202-deferred', ~tid_ci.1>, pk(~skE_W.1), rRespEnc.5)) @ #vk.38
+7: !KU( ~skE_W.1 ) @ #vk.7
+8: !StoredWalletEncKey( $Wid_at, ~skE, pk(~skE_W.1) ) ▶₀ #l
+9: !KU( aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1) ) @ #vk.41
+10: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),            jti_c.2, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.42
+11: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.2>,          ~skH)) @ #vk.43
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+4
+6
+8
+9
+10
+11
+5
+7
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP),            jti_c, aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,          ~skDPoP)) @ #vk.21
+1: !KU( pk(~skH) ) @ #vk.23
+2: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat>,          ~skH)) @ #vk.28
+3: !KU( pk(~skE_W) ) @ #vk.35
+4: !KU( ~tid_ci ) @ #vk.38
+5: !KU( penc(<'202-deferred', ~tid_ci.1>, pk(~skE_W.1), rRespEnc.5)) @ #vk.39
+6: !KU( ~skE_W.1 ) @ #vk.8
+7: !StoredWalletEncKey( $Wid_at, ~skE, pk(~skE_W.1) ) ▶₀ #l
+8: !KU( aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1) ) @ #vk.41
+9: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),            jti_c.2, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.42
+10: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.2>,          ~skH)) @ #vk.43
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+5
+7
+8
+9
+10
+4
+6
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( pk(~skH) ) @ #vk.24
+1: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat>,          ~skH)) @ #vk.29
+2: !KU( pk(~skE_W) ) @ #vk.36
+3: !KU( ~tid_ci ) @ #vk.39
+4: !KU( penc(<'202-deferred', ~tid_ci.1>, pk(~skE_W.1), rRespEnc.5)) @ #vk.40
+5: !KU( ~skE_W.1 ) @ #vk.9
+6: !StoredWalletEncKey( $Wid_at, ~skE, pk(~skE_W.1) ) ▶₀ #l
+7: !KU( aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1) ) @ #vk.42
+8: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),            jti_c.2, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.43
+9: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.2>,          ~skH)) @ #vk.44
+10: !KU( ~skDPoP ) @ #vk.47
+11: !KU( pk(~skDPoP) ) @ #vk.56
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+4
+6
+7
+8
+9
+11
+3
+5
+10
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( penc(<'credential-req',            aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2),            sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),                  jti_c.2, aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2)>,                ~skDPoP.2),            pk(~skH),            sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.2>,                ~skH),            'crypt-resp', pkE_W.1>,          pk(~skR_CI), rEnc.4)) @ #vk.12
+1: !KU( pk(~skR_CI) ) @ #vk.14
+2: !KU( aToken(~atSecret, pk(~skDPoP), $CI, $AS) ) @ #vk.18
+3: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP),            jti_c, aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,          ~skDPoP)) @ #vk.20
+4: !KU( pk(~skH) ) @ #vk.22
+5: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat>,          ~skH)) @ #vk.24
+6: !KU( pk(~skE_W) ) @ #vk.30
+7: !KU( ~tid_ci ) @ #vk.33
+8: !KU( aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2) ) @ #vk.38
+9: !KU( sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(~skDPoP.2),            jti_d.1, aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2)>,          ~skDPoP.2)) @ #vk.40
+10: !KU( ~tid_ci.1 ) @ #vk.42
+11: !KU( pk(k.1) ) @ #vk.43
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+4
+5
+6
+8
+9
+11
+7
+10
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( pk(~skR_CI) ) @ #vk.14
+1: !KU( aToken(~atSecret, pk(~skDPoP), $CI, $AS) ) @ #vk.18
+2: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP),            jti_c, aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,          ~skDPoP)) @ #vk.21
+3: !KU( pk(~skH) ) @ #vk.23
+4: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat>,          ~skH)) @ #vk.25
+5: !KU( pk(~skE_W) ) @ #vk.32
+6: !KU( ~tid_ci ) @ #vk.35
+7: !KU( sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(~skDPoP),            jti_d.1, aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,          ~skDPoP)) @ #vk.40
+8: !KU( ~tid_ci.1 ) @ #vk.41
+9: !KU( pk(k.1) ) @ #vk.42
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+4
+5
+7
+9
+6
+8
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( aToken(~atSecret, pk(~skDPoP), $CI, $AS) ) @ #vk.18
+1: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP),            jti_c, aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,          ~skDPoP)) @ #vk.22
+2: !KU( pk(~skH) ) @ #vk.24
+3: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat>,          ~skH)) @ #vk.26
+4: !KU( pk(~skE_W) ) @ #vk.34
+5: !KU( ~tid_ci ) @ #vk.37
+6: !KU( sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(~skDPoP),            jti_d.1, aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,          ~skDPoP)) @ #vk.40
+7: !KU( ~tid_ci.1 ) @ #vk.41
+8: !KU( pk(k.1) ) @ #vk.42
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+4
+6
+8
+5
+7
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP),            jti_c, aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,          ~skDPoP)) @ #vk.22
+1: !KU( pk(~skH) ) @ #vk.24
+2: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat>,          ~skH)) @ #vk.26
+3: !KU( pk(~skE_W) ) @ #vk.34
+4: !KU( ~tid_ci ) @ #vk.37
+5: !KU( sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(~skDPoP),            jti_d.1, aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,          ~skDPoP)) @ #vk.40
+6: !KU( ~tid_ci.1 ) @ #vk.41
+7: !KU( pk(k.1) ) @ #vk.42
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+5
+7
+4
+6
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( pk(~skH) ) @ #vk.25
+1: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat>,          ~skH)) @ #vk.27
+2: !KU( pk(~skE_W) ) @ #vk.35
+3: !KU( ~tid_ci ) @ #vk.38
+4: !KU( sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(~skDPoP),            jti_d.1, aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,          ~skDPoP)) @ #vk.41
+5: !KU( ~tid_ci.1 ) @ #vk.42
+6: !KU( pk(k.1) ) @ #vk.43
+7: !KU( ~skDPoP ) @ #vk.45
+8: !KU( pk(~skDPoP) ) @ #vk.54
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+4
+6
+8
+3
+5
+7
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( pk(~skR_CI) ) @ #vk.14
+1: !KU( aToken(~atSecret, pk(~skDPoP), $CI, $AS) ) @ #vk.19
+2: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP),            jti_c, aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,          ~skDPoP)) @ #vk.21
+3: !KU( pk(~skH) ) @ #vk.23
+4: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat>,          ~skH)) @ #vk.26
+5: !KU( pk(~skE_W) ) @ #vk.34
+6: !KU( ~tid_ci ) @ #vk.37
+7: !KU( aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1) ) @ #vk.42
+8: !KU( sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(~skDPoP.2),            jti_d.1, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.45
+9: !KU( ~tid_ci.1 ) @ #vk.46
+10: !KU( pk(k.1) ) @ #vk.47
+11: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),            jti_c.2, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.50
+12: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.2>,          ~skH)) @ #vk.52
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+4
+5
+7
+8
+10
+11
+12
+6
+9
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( aToken(~atSecret, pk(~skDPoP), $CI, $AS) ) @ #vk.19
+1: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP),            jti_c, aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,          ~skDPoP)) @ #vk.21
+2: !KU( pk(~skH) ) @ #vk.23
+3: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat>,          ~skH)) @ #vk.27
+4: !KU( pk(~skE_W) ) @ #vk.37
+5: !KU( ~tid_ci ) @ #vk.40
+6: !KU( aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1) ) @ #vk.45
+7: !KU( sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(~skDPoP.2),            jti_d.1, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.47
+8: !KU( ~tid_ci.1 ) @ #vk.48
+9: !KU( pk(k.1) ) @ #vk.49
+10: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),            jti_c.2, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.51
+11: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.2>,          ~skH)) @ #vk.52
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+4
+6
+7
+9
+10
+11
+5
+8
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP),            jti_c, aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,          ~skDPoP)) @ #vk.21
+1: !KU( pk(~skH) ) @ #vk.23
+2: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat>,          ~skH)) @ #vk.28
+3: !KU( pk(~skE_W) ) @ #vk.39
+4: !KU( ~tid_ci ) @ #vk.42
+5: !KU( aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1) ) @ #vk.46
+6: !KU( sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(~skDPoP.2),            jti_d.1, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.47
+7: !KU( ~tid_ci.1 ) @ #vk.48
+8: !KU( pk(k.1) ) @ #vk.49
+9: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),            jti_c.2, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.51
+10: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.2>,          ~skH)) @ #vk.52
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+5
+6
+8
+9
+10
+4
+7
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( pk(~skH) ) @ #vk.24
+1: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat>,          ~skH)) @ #vk.29
+2: !KU( pk(~skE_W) ) @ #vk.41
+3: !KU( ~tid_ci ) @ #vk.44
+4: !KU( aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1) ) @ #vk.47
+5: !KU( sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(~skDPoP.2),            jti_d.1, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.48
+6: !KU( ~tid_ci.1 ) @ #vk.49
+7: !KU( pk(k.1) ) @ #vk.50
+8: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),            jti_c.2, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.52
+9: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.2>,          ~skH)) @ #vk.53
+10: !KU( ~skDPoP ) @ #vk.56
+11: !KU( pk(~skDPoP) ) @ #vk.65
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+4
+5
+7
+8
+9
+11
+3
+6
+10
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !CI_ReqEncSk( $CI, ~skR_CI ) ▶₁ #i
+1: !Ltk_CI( $CI, ~ltkCI ) ▶₃ #i
+2: !KU( sign(<'credential', $CI, 'PII-dataset', pk(~skH)>, ~ltkCI)) @ #vk.1
+3: !KU( penc(<'credential-req',            aToken(~atSecret, pk(~skDPoP), $CI, $AS),            sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP), jti_c,                  aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,                ~skDPoP),            pk(~skH),            sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat>, ~skH),            'crypt-resp', pkE_W>,          pk(~skR_CI.1), rEnc.1)) @ #vk.6
+4: !KU( pk(~skR_CI) ) @ #vk.8
+5: !KU( aToken(~atSecret, pk(~skDPoP), $CI, $AS) ) @ #vk.12
+6: !KU( sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(~skDPoP),            jti_d, aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,          ~skDPoP)) @ #vk.14
+7: !KU( ~tid_ci ) @ #vk.16
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+4
+5
+6
+7
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !Ltk_CI( $CI, ~ltkCI ) ▶₃ #i
+1: !KU( sign(<'credential', $CI, 'PII-dataset', pk(~skH)>, ~ltkCI)) @ #vk.2
+2: !KU( penc(<'credential-req',            aToken(~atSecret, pk(~skDPoP), $CI, $AS),            sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP), jti_c,                  aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,                ~skDPoP),            pk(~skH),            sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat>, ~skH),            'crypt-resp', pkE_W>,          pk(~skR_CI), rEnc.1)) @ #vk.6
+3: !KU( pk(~skR_CI) ) @ #vk.8
+4: !KU( aToken(~atSecret, pk(~skDPoP), $CI, $AS) ) @ #vk.12
+5: !KU( sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(~skDPoP),            jti_d, aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,          ~skDPoP)) @ #vk.14
+6: !KU( ~tid_ci ) @ #vk.16
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+4
+5
+6
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( sign(<'credential', $CI, 'PII-dataset', pk(~skH)>, ~ltkCI)) @ #vk.2
+1: !KU( penc(<'credential-req',            aToken(~atSecret, pk(~skDPoP), $CI, $AS),            sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP), jti_c,                  aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,                ~skDPoP),            pk(~skH),            sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat>, ~skH),            'crypt-resp', pkE_W>,          pk(~skR_CI), rEnc.1)) @ #vk.6
+2: !KU( pk(~skR_CI) ) @ #vk.8
+3: !KU( aToken(~atSecret, pk(~skDPoP), $CI, $AS) ) @ #vk.12
+4: !KU( sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(~skDPoP),            jti_d, aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,          ~skDPoP)) @ #vk.14
+5: !KU( ~tid_ci ) @ #vk.16
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+4
+5
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( penc(<'credential-req',            aToken(~atSecret, pk(~skDPoP), $CI, $AS),            sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP), jti_c,                  aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,                ~skDPoP),            pk(~skH),            sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat>, ~skH),            'crypt-resp', pkE_W>,          pk(~skR_CI), rEnc.1)) @ #vk.8
+1: !KU( pk(~skR_CI) ) @ #vk.10
+2: !KU( aToken(~atSecret, pk(~skDPoP), $CI, $AS) ) @ #vk.14
+3: !KU( sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(~skDPoP),            jti_d, aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,          ~skDPoP)) @ #vk.16
+4: !KU( ~tid_ci ) @ #vk.18
+5: !KU( penc(<'def-req',            aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2),            sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(~skDPoP.2), jti_d.1,                  aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2)>,                ~skDPoP.2),            ~tid_ci.1, 'crypt-resp', pk(k.1)>,          pk(~skR_CI), rEnc.3)) @ #vk.22
+6: !KU( penc(<'credential-req',            aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2),            sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),                  jti_c.2, aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2)>,                ~skDPoP.2),            pk(~skH),            sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.2>,                ~skH),            'crypt-resp', pkE_W.1>,          pk(~skR_CI), rEnc.4)) @ #vk.24
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+5
+6
+4
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( pk(~skR_CI) ) @ #vk.10
+1: !KU( aToken(~atSecret, pk(~skDPoP), $CI, $AS) ) @ #vk.14
+2: !KU( sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(~skDPoP),            jti_d, aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,          ~skDPoP)) @ #vk.16
+3: !KU( ~tid_ci ) @ #vk.18
+4: !KU( penc(<'def-req',            aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2),            sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(~skDPoP.2), jti_d.1,                  aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2)>,                ~skDPoP.2),            ~tid_ci.1, 'crypt-resp', pk(k.1)>,          pk(~skR_CI), rEnc.2)) @ #vk.22
+5: !KU( penc(<'credential-req',            aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2),            sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),                  jti_c.1, aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2)>,                ~skDPoP.2),            pk(~skH),            sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.1>,                ~skH),            'crypt-resp', pkE_W>,          pk(~skR_CI), rEnc.3)) @ #vk.24
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+4
+5
+3
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( aToken(~atSecret, pk(~skDPoP), $CI, $AS) ) @ #vk.14
+1: !KU( sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(~skDPoP),            jti_d, aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,          ~skDPoP)) @ #vk.16
+2: !KU( ~tid_ci ) @ #vk.18
+3: !KU( penc(<'def-req',            aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2),            sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(~skDPoP.2), jti_d.1,                  aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2)>,                ~skDPoP.2),            ~tid_ci.1, 'crypt-resp', pk(k.1)>,          pk(~skR_CI), rEnc.2)) @ #vk.22
+4: !KU( penc(<'credential-req',            aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2),            sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),                  jti_c.1, aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2)>,                ~skDPoP.2),            pk(~skH),            sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.1>,                ~skH),            'crypt-resp', pkE_W>,          pk(~skR_CI), rEnc.3)) @ #vk.24
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+3
+4
+2
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(~skDPoP),            jti_d, aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,          ~skDPoP)) @ #vk.16
+1: !KU( ~tid_ci ) @ #vk.18
+2: !KU( penc(<'def-req',            aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2),            sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(~skDPoP.2), jti_d.1,                  aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2)>,                ~skDPoP.2),            ~tid_ci.1, 'crypt-resp', pk(k.1)>,          pk(~skR_CI), rEnc.2)) @ #vk.22
+3: !KU( penc(<'credential-req',            aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2),            sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),                  jti_c.1, aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2)>,                ~skDPoP.2),            pk(~skH),            sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.1>,                ~skH),            'crypt-resp', pkE_W>,          pk(~skR_CI), rEnc.3)) @ #vk.24
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+2
+3
+1
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( ~tid_ci ) @ #vk.19
+1: !KU( penc(<'def-req',            aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2),            sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(~skDPoP.2), jti_d.1,                  aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2)>,                ~skDPoP.2),            ~tid_ci.1, 'crypt-resp', pk(k.1)>,          pk(~skR_CI), rEnc.2)) @ #vk.23
+2: !KU( penc(<'credential-req',            aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2),            sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),                  jti_c.1, aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2)>,                ~skDPoP.2),            pk(~skH),            sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.1>,                ~skH),            'crypt-resp', pkE_W>,          pk(~skR_CI), rEnc.3)) @ #vk.25
+3: !KU( ~skDPoP ) @ #vk.27
+4: !KU( pk(~skDPoP) ) @ #vk.36
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+1
+2
+4
+0
+3
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( ~tid_ci ) @ #vk.21
+1: !KU( penc(<'credential-req',            aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2),            sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),                  jti_c.1, aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2)>,                ~skDPoP.2),            pk(~skH),            sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.1>,                ~skH),            'crypt-resp', pkE_W>,          pk(~skR_CI), rEnc.3)) @ #vk.26
+2: !KU( ~skDPoP ) @ #vk.28
+3: !KU( pk(~skDPoP) ) @ #vk.36
+4: !KU( penc(<'202-deferred', ~tid_ci.1>, pk(~skE_W), rRespEnc.4)) @ #vk.38
+5: !KU( ~skE_W ) @ #vk.25
+6: !StoredWalletEncKey( $Wid_at, ~skE, pk(~skE_W) ) ▶₀ #l
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+1
+3
+4
+6
+0
+2
+5
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( ~tid_ci ) @ #vk.24
+1: !KU( ~skDPoP ) @ #vk.30
+2: !KU( pk(~skDPoP) ) @ #vk.37
+3: !KU( penc(<'202-deferred', ~tid_ci.1>, pk(~skE_W), rRespEnc.4)) @ #vk.39
+4: !KU( ~skE_W ) @ #vk.8
+5: !StoredWalletEncKey( $Wid_at, ~skE, pk(~skE_W) ) ▶₀ #l
+6: !KU( aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1) ) @ #vk.44
+7: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),            jti_c.1, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.46
+8: !KU( pk(~skH) ) @ #vk.48
+9: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.1>,          ~skH)) @ #vk.50
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+2
+3
+5
+6
+7
+8
+9
+0
+1
+4
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( ~tid_ci ) @ #vk.26
+1: !KU( ~skDPoP ) @ #vk.33
+2: !KU( penc(<'202-deferred', ~tid_ci.1>, pk(~skE_W), rRespEnc.4)) @ #vk.40
+3: !KU( ~skE_W ) @ #vk.9
+4: !StoredWalletEncKey( $Wid_at, ~skE, pk(~skE_W) ) ▶₀ #l
+5: !KU( aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1) ) @ #vk.45
+6: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),            jti_c.1, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.47
+7: !KU( pk(~skH) ) @ #vk.49
+8: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.1>,          ~skH)) @ #vk.50
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+2
+4
+5
+6
+7
+8
+0
+1
+3
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( ~tid_ci ) @ #vk.28
+1: !KU( ~skDPoP ) @ #vk.36
+2: !KU( ~skE_W ) @ #vk.10
+3: !StoredWalletEncKey( $Wid_at, ~skE, pk(~skE_W) ) ▶₀ #l
+4: !KU( aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1) ) @ #vk.46
+5: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),            jti_c.1, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.48
+6: !KU( pk(~skH) ) @ #vk.49
+7: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.1>,          ~skH)) @ #vk.50
+8: !KU( pk(~skE_W) ) @ #vk.51
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+3
+4
+5
+6
+7
+8
+0
+1
+2
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( ~tid_ci ) @ #vk.29
+1: !KU( ~skDPoP ) @ #vk.37
+2: !KU( ~skE ) @ #vk.10
+3: !KU( aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1) ) @ #vk.47
+4: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),            jti_c.1, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.48
+5: !KU( pk(~skH) ) @ #vk.49
+6: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.1>,          ~skH)) @ #vk.50
+7: !KU( pk(~skE) ) @ #vk.51
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+3
+4
+5
+6
+7
+0
+1
+2
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( ~tid_ci ) @ #vk.30
+1: !KU( ~skDPoP ) @ #vk.39
+2: !KU( ~skE ) @ #vk.11
+3: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),            jti_c.1, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.48
+4: !KU( pk(~skH) ) @ #vk.49
+5: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.1>,          ~skH)) @ #vk.50
+6: !KU( pk(~skE) ) @ #vk.51
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+3
+4
+5
+6
+0
+1
+2
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( ~tid_ci ) @ #vk.33
+1: !KU( ~skDPoP ) @ #vk.42
+2: !KU( ~skE ) @ #vk.12
+3: !KU( pk(~skH) ) @ #vk.53
+4: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.1>,          ~skH)) @ #vk.54
+5: !KU( pk(~skE) ) @ #vk.55
+6: !KU( ~skDPoP.2 ) @ #vk.56
+7: !KU( pk(~skDPoP.2) ) @ #vk.60
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+3
+4
+5
+7
+0
+1
+2
+6
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( ~tid_ci ) @ #vk.28
+1: !KU( ~skDPoP ) @ #vk.36
+2: !KU( ~skE_W ) @ #vk.10
+3: !StoredWalletEncKey( $Wid_at, ~skE, pk(~skE_W) ) ▶₀ #l
+4: !KU( aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1) ) @ #vk.46
+5: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),            jti_c.1, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.48
+6: !KU( pk(~skH) ) @ #vk.49
+7: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.1>,          ~skH)) @ #vk.50
+8: !KU( pk(~skE_W) ) @ #vk.53
+9: !KU( ~tid_ci.1 ) @ #vk.56
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+3
+4
+5
+6
+7
+8
+0
+1
+2
+9
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( ~tid_ci ) @ #vk.29
+1: !KU( ~skDPoP ) @ #vk.37
+2: !KU( ~skE ) @ #vk.10
+3: !KU( aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1) ) @ #vk.47
+4: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),            jti_c.1, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.48
+5: !KU( pk(~skH) ) @ #vk.49
+6: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.1>,          ~skH)) @ #vk.50
+7: !KU( pk(~skE) ) @ #vk.53
+8: !KU( ~tid_ci.1 ) @ #vk.56
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+3
+4
+5
+6
+7
+0
+1
+2
+8
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( ~tid_ci ) @ #vk.30
+1: !KU( ~skDPoP ) @ #vk.39
+2: !KU( ~skE ) @ #vk.11
+3: !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),            jti_c.1, aToken(~atSecret.1, pk(~skDPoP.2), $CI, $AS.1)>,          ~skDPoP.2)) @ #vk.48
+4: !KU( pk(~skH) ) @ #vk.49
+5: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.1>,          ~skH)) @ #vk.50
+6: !KU( pk(~skE) ) @ #vk.53
+7: !KU( ~tid_ci.1 ) @ #vk.56
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+3
+4
+5
+6
+0
+1
+2
+7
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( ~tid_ci ) @ #vk.33
+1: !KU( ~skDPoP ) @ #vk.42
+2: !KU( ~skE ) @ #vk.12
+3: !KU( pk(~skH) ) @ #vk.53
+4: !KU( sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.1>,          ~skH)) @ #vk.54
+5: !KU( pk(~skE) ) @ #vk.57
+6: !KU( ~tid_ci.1 ) @ #vk.60
+7: !KU( ~skDPoP.2 ) @ #vk.61
+8: !KU( pk(~skDPoP.2) ) @ #vk.65
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+3
+4
+5
+8
+0
+1
+2
+6
+7
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( ~tid_ci ) @ #vk.22
+1: !KU( penc(<'credential-req',            aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2),            sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.2),                  jti_c.1, aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2)>,                ~skDPoP.2),            pk(~skH),            sign(<'openid4vci-proof+jwt', 'ES256', pk(~skH), $CI, iat.1>,                ~skH),            'crypt-resp', pkE_W>,          pk(~skR_CI), rEnc.3)) @ #vk.28
+2: !KU( ~skDPoP ) @ #vk.30
+3: !KU( pk(~skDPoP) ) @ #vk.38
+4: !KU( aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2) ) @ #vk.42
+5: !KU( sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(~skDPoP.2),            jti_d.1, aToken(~atSecret.2, pk(~skDPoP.2), $CI, $AS.2)>,          ~skDPoP.2)) @ #vk.44
+6: !KU( ~tid_ci.1 ) @ #vk.46
+7: !KU( pk(k.1) ) @ #vk.47
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+1
+3
+4
+5
+7
+0
+2
+6
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( ~tid_ci ) @ #vk.19
+1: !KU( ~skDPoP ) @ #vk.25
+2: !KU( pk(~skDPoP) ) @ #vk.32
+3: !KU( pk(k) ) @ #vk.22
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+2
+3
+0
+1
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( ~tid_ci ) @ #vk.21
+1: !KU( ~skDPoP ) @ #vk.27
+2: !KU( pk(k) ) @ #vk.24
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+2
+0
+1
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( ~tid_ci ) @ #vk.23
+1: !KU( ~skDPoP ) @ #vk.28
+2: !KU( ~skR_CI ) @ #vk.26
+3: !CI_ReqEncSk( $CI.2, ~skR ) ▶₀ #l
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+3
+0
+1
+2
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( ~tid_ci ) @ #vk.26
+1: !KU( ~skDPoP ) @ #vk.28
+2: !KU( ~skR ) @ #vk.8
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( ~skDPoP ) @ #vk.28
+1: !KU( ~skR ) @ #vk.9
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( ~skR ) @ #vk.10
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !CI_ReqEncSk( $CI.1, ~skR.1 ) ▶₀ #l.1
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+
+==============================================================================
+summary of summaries:
+
+analyzed: OID4VCI_v1-0_deferred-issuance-flow.spthy
+
+  output:          OID4VCI_v1-0_deferred-issuance-flow_vulnerable_DependencyGraph.spthy
+  processing time: 19.00s
+  
+  skR_CI_secrecy (all-traces): verified (10 steps)
+  ltkCI_secrecy (all-traces): verified (8 steps)
+  skH_secrecy (all-traces): verified (12 steps)
+  skE_W_secrecy (all-traces): verified (12 steps)
+  helper_pkH_unique (all-traces): verified (3 steps)
+  helper_pkE_unique (all-traces): verified (3 steps)
+  exec_full_honest_deferred_flow (exists-trace): verified (8 steps)
+  P50_holder_binding_preserved (all-traces): verified (32 steps)
+  c2_attack_witness (exists-trace): verified (26 steps)
+  P10_credential_secrecy_vuln (all-traces): falsified - found trace (27 steps)
+  AUTO_typing (all-traces): verified (13 steps)
+
+==============================================================================
+	Command being timed: "systemd-run --user --scope -p MemoryMax=200G -p MemorySwapMax=0 tamarin-prover OID4VCI_v1-0_deferred-issuance-flow.spthy --prove -DVULNERABLE --auto-sources --stop-on-trace=seqdfs --quit-on-warning -c=50 -s=50 --derivcheck-timeout=0 --output=OID4VCI_v1-0_deferred-issuance-flow_vulnerable_DependencyGraph.spthy"
+	User time (seconds): 44.74
+	System time (seconds): 2.43
+	Percent of CPU this job got: 246%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:19.14
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 657336
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 204599
+	Voluntary context switches: 235447
+	Involuntary context switches: 1993
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 120
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

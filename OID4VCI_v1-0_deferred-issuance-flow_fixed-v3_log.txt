@@ -1,0 +1,279 @@
+Running as unit: run-rce6a668386d543d8aeffe2de5947b9d9.scope; invocation ID: 4284ccdc9b9b43efb9c847a4276f2b71
+maude tool: 'maude'
+ checking version: 3.5.1. OK.
+ checking installation: OK.
+[Theory OID4VCI_C2] Theory loaded
+[Theory OID4VCI_C2] Theory translated
+[Theory OID4VCI_C2] Theory closed
+[Saturating Sources] Step 1 (Max 50)
+[Saturating Sources] Done
+[Saturating Sources] Step 1 (Max 50)
+[Saturating Sources] Done
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: CredIssued_For_PkH( CI, pkH, AT, tid ) @ #i
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+[Saturating Sources] Step 1 (Max 50)
+[Saturating Sources] Done
+[Saturating Sources] Step 1 (Max 50)
+[Saturating Sources] Done
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !KU( penc(<'def-req-v3', AT,            sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(skDPoP_x), jti_d, AT                >,                skDPoP_x),            tid, 'crypt-resp', pkE_new, 'tid-bind-sig',            sign(<'oid4vci-tid-bind', $CI, tid, h(pkE_new)>, skB_x)>,          pk(~skR_CI), rEnc)) @ #vk.2
+1: !CI_ReqEncSk( $CI, ~skR_CI ) ▶₁ #i
+2: !CI_PendingTx_Fixed( $CI, tid, AT, $AS, $Wid_at, pk(skDPoP_x), pkH,                     pk(skB_x)) ▶₂ #i
+3: !Ltk_CI( $CI, ~ltkCI ) ▶₃ #i
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !CI_ReqEncSk( $CI, ~skR_CI ) ▶₁ #i
+1: !CI_PendingTx_Fixed( $CI, tid,                     aTokenV3(~atSecret, pk(~skDPoP), pk(~skH), $CI, $AS), $AS.1,                     $Wid_at, pk(~skDPoP), pkH, pk(~skB)) ▶₂ #i
+2: !Ltk_CI( $CI, ~ltkCI ) ▶₃ #i
+3: !KU( penc(<'202-deferred', tid>, pk(~skE_W), rRespEnc.1) ) @ #vk.3
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !CI_PendingTx_Fixed( $CI, tid,                     aTokenV3(~atSecret, pk(~skDPoP), pk(~skH), $CI, $AS), $AS.1,                     $Wid_at, pk(~skDPoP), pkH, pk(~skB)) ▶₂ #i
+1: !Ltk_CI( $CI, ~ltkCI ) ▶₃ #i
+2: !KU( penc(<'202-deferred', tid>, pk(~skE_W), rRespEnc.1) ) @ #vk.3
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !CI_ReqEncSk( $CI, ~skR_CI ) ▶₁ #i
+1: !CI_PendingTx_Fixed( $CI, tid, AT, $AS, $Wid_at, pk(skDPoP_x), pkH,                     pk(skB_x)) ▶₂ #i
+2: !Ltk_CI( $CI, ~ltkCI ) ▶₃ #i
+3: !KU( pk(~skR_CI) ) @ #vk.4
+4: !KU( sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(skDPoP_x),            jti_d, AT>,          skDPoP_x)) @ #vk.10
+5: !KU( sign(<'oid4vci-tid-bind', $CI, tid, h(pkE_new)>, skB_x)) @ #vk.19
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+3
+0
+1
+2
+4
+5
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !CI_ReqEncSk( $CI, ~skR_CI ) ▶₁ #i
+1: !CI_PendingTx_Fixed( $CI, tid, AT, $AS, $Wid_at, pk(skDPoP_x), pkH,                     pk(skB_x)) ▶₂ #i
+2: !Ltk_CI( $CI, ~ltkCI ) ▶₃ #i
+3: !KU( sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(skDPoP_x),            jti_d, AT>,          skDPoP_x)) @ #vk.10
+4: !KU( sign(<'oid4vci-tid-bind', $CI, tid, h(pkE_new)>, skB_x)) @ #vk.19
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+4
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !CI_PendingTx_Fixed( $CI, tid, AT, $AS, $Wid_at, pk(skDPoP_x), pkH,                     pk(skB_x)) ▶₂ #i
+1: !Ltk_CI( $CI, ~ltkCI ) ▶₃ #i
+2: !KU( sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(skDPoP_x),            jti_d, AT>,          skDPoP_x)) @ #vk.10
+3: !KU( sign(<'oid4vci-tid-bind', $CI, tid, h(pkE_new)>, skB_x)) @ #vk.19
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !CI_ReqEncSk( $CI, ~skR_CI ) ▶₁ #i
+1: !CI_PendingTx_Fixed( $CI, tid, AT, $AS, $Wid_at, pk(skDPoP_x), pkH,                     pk(skB_x)) ▶₂ #i
+2: !Ltk_CI( $CI, ~ltkCI ) ▶₃ #i
+3: !KU( sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(skDPoP_x),            jti_d, AT>,          skDPoP_x)) @ #vk.10
+4: !KU( sign(<'oid4vci-tid-bind', $CI, tid, h(pkE_new)>, skB_x)) @ #vk.19
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+4
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !CI_ReqEncSk( $CI, ~skR_CI ) ▶₁ #i
+1: !CI_PendingTx_Fixed( $CI, tid, AT, $AS, $Wid_at, pk(skDPoP_x), pkH,                     pk(skB_x)) ▶₂ #i
+2: !Ltk_CI( $CI, ~ltkCI ) ▶₃ #i
+3: !KU( sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(skDPoP_x),            jti_d, AT>,          skDPoP_x)) @ #vk.10
+4: !KU( sign(<'oid4vci-tid-bind', $CI, tid, h(pkE_new)>, skB_x)) @ #vk.19
+5: !KU( ~skR_CI.1 ) @ #vk.20
+6: !CI_ReqEncSk( $CI.1, ~skR ) ▶₀ #l
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+4
+6
+5
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !CI_ReqEncSk( $CI, ~skR_CI ) ▶₁ #i
+1: !CI_PendingTx_Fixed( $CI, tid, AT, $AS, $Wid_at, pk(skDPoP_x), pkH,                     pk(skB_x)) ▶₂ #i
+2: !Ltk_CI( $CI, ~ltkCI ) ▶₃ #i
+3: !KU( sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(skDPoP_x),            jti_d, AT>,          skDPoP_x)) @ #vk.10
+4: !KU( sign(<'oid4vci-tid-bind', $CI, tid, h(pkE_new)>, skB_x)) @ #vk.19
+5: !KU( ~skR_CI.1 ) @ #vk.20
+6: !CI_ReqEncSk( $CI.1, ~skR ) ▶₀ #l
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+4
+6
+5
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !CI_ReqEncSk( $CI, ~skR_CI ) ▶₁ #i
+1: !CI_PendingTx_Fixed( $CI, tid, AT, $AS, $Wid_at, pk(skDPoP_x), pkH,                     pk(skB_x)) ▶₂ #i
+2: !Ltk_CI( $CI, ~ltkCI ) ▶₃ #i
+3: !KU( sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(skDPoP_x),            jti_d, AT>,          skDPoP_x)) @ #vk.10
+4: !KU( sign(<'oid4vci-tid-bind', $CI, tid, h(pkE_new)>, skB_x)) @ #vk.19
+5: !KU( ~skR_CI.1 ) @ #vk.20
+6: !CI_ReqEncSk( $CI.1, ~skR ) ▶₀ #l
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+4
+6
+5
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !CI_ReqEncSk( $CI, ~skR_CI ) ▶₁ #i
+1: !CI_PendingTx_Fixed( $CI, tid, AT, $AS, $Wid_at, pk(skDPoP_x), pkH,                     pk(skB_x)) ▶₂ #i
+2: !Ltk_CI( $CI, ~ltkCI ) ▶₃ #i
+3: !KU( sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(skDPoP_x),            jti_d, AT>,          skDPoP_x)) @ #vk.10
+4: !KU( sign(<'oid4vci-tid-bind', $CI, tid, h(pkE_new)>, skB_x)) @ #vk.19
+5: !KU( ~skR_CI.1 ) @ #vk.20
+6: !KU( penc(<'202-deferred', tid.1>, pk(~skR_CI), rRespEnc.1)) @ #vk.21
+7: !CI_ReqEncSk( $CI.1, ~skR ) ▶₀ #l
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+4
+6
+7
+5
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+>>>>>>>>>>>>>>>>>>>>>>>> START INPUT
+0: !CI_ReqEncSk( $CI, ~skR_CI ) ▶₁ #i
+1: !CI_PendingTx_Fixed( $CI, tid, AT, $AS, $Wid_at, pk(skDPoP_x), pkH,                     pk(skB_x)) ▶₂ #i
+2: !Ltk_CI( $CI, ~ltkCI ) ▶₃ #i
+3: !KU( sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(skDPoP_x),            jti_d, AT>,          skDPoP_x)) @ #vk.10
+4: !KU( sign(<'oid4vci-tid-bind', $CI, tid, h(pkE_new)>, skB_x)) @ #vk.19
+5: !KU( ~skR_CI ) @ #vk.20
+
+>>>>>>>>>>>>>>>>>>>>>>>> START OUTPUT
+0
+1
+2
+3
+4
+5
+
+>>>>>>>>>>>>>>>>>>>>>>>> END Tactic call
+
+
+==============================================================================
+summary of summaries:
+
+analyzed: OID4VCI_v1-0_deferred-issuance-flow.spthy
+
+  output:          OID4VCI_v1-0_deferred-issuance-flow_fixed-v3_DependencyGraph.spthy
+  processing time: 13.42s
+  
+  skR_CI_secrecy (all-traces): verified (10 steps)
+  ltkCI_secrecy (all-traces): verified (8 steps)
+  skH_secrecy (all-traces): verified (8 steps)
+  skE_W_secrecy (all-traces): verified (12 steps)
+  helper_pkH_unique (all-traces): verified (3 steps)
+  helper_pkE_unique (all-traces): verified (3 steps)
+  helper_skB_unique (all-traces): verified (3 steps)
+  exec_full_honest_deferred_flow (exists-trace): verified (8 steps)
+  P50_holder_binding_preserved (all-traces): verified (17 steps)
+  c2prime_attack_blocked_v3 (all-traces): verified (10 steps)
+  P10_credential_secrecy_fixed_v3 (all-traces): verified (94 steps)
+  AUTO_typing (all-traces): verified (13 steps)
+
+==============================================================================
+	Command being timed: "systemd-run --user --scope -p MemoryMax=200G -p MemorySwapMax=0 tamarin-prover OID4VCI_v1-0_deferred-issuance-flow.spthy --prove -DFIXED_V3 --auto-sources --stop-on-trace=seqdfs --quit-on-warning -c=50 -s=50 --derivcheck-timeout=0 --output=OID4VCI_v1-0_deferred-issuance-flow_fixed-v3_DependencyGraph.spthy"
+	User time (seconds): 30.73
+	System time (seconds): 1.72
+	Percent of CPU this job got: 239%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:13.57
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 348292
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 108735
+	Voluntary context switches: 123053
+	Involuntary context switches: 1805
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 152
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

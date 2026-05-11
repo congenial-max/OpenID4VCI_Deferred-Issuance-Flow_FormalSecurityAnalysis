@@ -1,0 +1,1885 @@
+theory OID4VCI_C2
+
+begin
+
+// Function signature and definition of the equational theory E
+
+functions: aToken/4[private,constructor],
+           aTokenV3/5[private,constructor], fst/1, h/1, pair/2, pdec/2, penc/3,
+           pk/1, sign/2, snd/1, true/0, verify/3
+equations:
+    fst(<x.1, x.2>) = x.1,
+    pdec(penc(m, pk(k), r), k) = m,
+    snd(<x.1, x.2>) = x.2,
+    verify(sign(x.1, x.2), x.1, pk(x.2)) = true
+
+tactic: P50_tactic
+presort: C
+prio: {id}
+  regex"WalletGen_HolderKey\("
+  regex"Reveal_HolderKey\("
+  regex"!KU\(pk\("
+  regex"CredIssued_For_PkH\("
+deprio: {id}
+  regex"!KU\(~skR_CI"
+  regex"!KU\(~ltkCI"
+  regex"!KU\(~skE"
+  regex"!KU\(~skH"
+  regex"!KU\(~skDPoP"
+  regex"!KU\(~atSecret"
+  regex"!KU\(~"
+tactic: c2_witness_tactic
+presort: C
+prio: {id}
+  regex"CI_Issued_Credential_Vuln\("
+  regex"Wallet_Sent_Cred_Req\("
+  regex"Reveal_TxId\("
+  regex"Reveal_StoredAT\("
+  regex"Reveal_DPoPKey\("
+  regex"!CI_PendingTx_Vuln\("
+  regex"!Valid_AT\("
+  regex"!StoredDPoPKey\("
+  regex"!StoredAT\("
+  regex"!PendingTxId\("
+deprio: {id}
+  regex"!KU\(~skE"
+  regex"!KU\(~skH"
+  regex"!KU\(~ltkCI"
+  regex"!KU\(~"
+tactic: c2prime_witness_tactic
+presort: C
+prio: {id}
+  regex"CI_Issued_Credential_Fixed\("
+  regex"Wallet_Sent_Cred_Req\("
+  regex"Reveal_TxId\("
+  regex"Reveal_StoredAT\("
+  regex"Reveal_DPoPKey\("
+  regex"Reveal_HolderKey\("
+  regex"!CI_PendingTx_Fixed\("
+  regex"!Valid_AT\("
+  regex"!StoredDPoPKey\("
+  regex"!StoredAT\("
+  regex"!StoredHolderKey\("
+  regex"!PendingTxId\("
+deprio: {id}
+  regex"!KU\(~skE"
+  regex"!KU\(~ltkCI"
+  regex"!KU\(~skR_CI"
+  regex"!KU\(~"
+
+macros: dpopPayloadCred( CI, pkDPoP, jti, AT ) =  <'dpop+jwt', CI, 
+                                                   'POST', 'credential', pkDPoP, jti, AT>,
+        dpopPayloadDef( CI, pkDPoP, jti, AT ) =  <'dpop+jwt', CI, 'POST', 
+                                                  'deferred', pkDPoP, jti, AT>,
+        dpopProofCred( CI, pkDPoP, jti, AT, skDPoP ) =  sign(dpopPayloadCred(CI,
+                                                                             pkDPoP, jti, AT),
+                                                             skDPoP),
+        dpopProofDef( CI, pkDPoP, jti, AT, skDPoP ) =  sign(dpopPayloadDef(CI,
+                                                                           pkDPoP, jti, AT),
+                                                            skDPoP),
+        keyProofPayload( CI, pkH, iat ) =  <'openid4vci-proof+jwt', 'ES256', 
+                                            pkH, CI, iat>,
+        keyProofJWT( CI, pkH, iat, skH ) =  sign(keyProofPayload(CI, pkH, iat),
+                                                 skH),
+        keyProofPayloadV2( CI, pkH, pkB, iat ) =  <'openid4vci-proof+jwt-v2', 
+                                                   'ES256', pkH, h(pkB), CI, iat>,
+        keyProofJWTV2( CI, pkH, pkB, iat, skH ) =  sign(keyProofPayloadV2(CI,
+                                                                          pkH, pkB, iat),
+                                                        skH),
+        credPayload( CI, pkH ) =  <'credential', CI, 'PII-dataset', pkH>,
+        credentialSig( CI, pkH, ltkCI ) =  sign(credPayload(CI, pkH), ltkCI),
+        txIdBindPayload( CI, tid, pkE_new ) =  <'oid4vci-tid-bind', CI, tid, 
+                                                h(pkE_new)>,
+        txIdBindSig( CI, tid, pkE_new, skB ) =  sign(txIdBindPayload(CI, tid,
+                                                                     pkE_new),
+                                                     skB)
+
+predicate: HonestCI( CI )<=>¬(∃ #r. Reveal_CI( CI ) @ #r)
+
+predicate: HonestCIReqEnc( CI )<=>¬(∃ #r. Reveal_CI_ReqEncKey( CI ) @ #r)
+
+predicate: NoHolderKeyLeak( Wid )<=>¬(∃ p #r. Reveal_HolderKey( Wid, p ) @ #r)
+
+predicate: NoEncKeyLeak( Wid )<=>¬(∃ p #r. Reveal_WalletEncKey( Wid, p ) @ #r)
+
+predicate: NoBindKeyLeak( Wid )<=>¬(∃ p #r. Reveal_WalletBindKey( Wid, p ) @ #r)
+
+predicate: NoStoredATLeak( Wid, CI )<=>¬(∃ at #r. Reveal_StoredAT( Wid, CI, at ) @ #r)
+
+predicate: NoDPoPKeyLeak( Wid )<=>¬(∃ p #r. Reveal_DPoPKey( Wid, p ) @ #r)
+
+predicate: NoTxIdLeak( Wid, CI )<=>¬(∃ t #r. Reveal_TxId( Wid, CI, t ) @ #r)
+
+restriction Eq:
+  "∀ x y #i. (Eq( x, y ) @ #i) ⇒ (x = y)"
+  // safety formula
+
+  /*
+  expanded formula:
+  "∀ x y #i. (Eq( x, y ) @ #i) ⇒ (x = y)"
+  */
+
+restriction OnlyOnceV:
+  "∀ x #i #j. ((OnlyOnceV( x ) @ #i) ∧ (OnlyOnceV( x ) @ #j)) ⇒ (#i = #j)"
+  // safety formula
+
+  /*
+  expanded formula:
+  "∀ x #i #j. ((OnlyOnceV( x ) @ #i) ∧ (OnlyOnceV( x ) @ #j)) ⇒ (#i = #j)"
+  */
+
+restriction UniqueCIKey:
+  "∀ CI k1 k2 #i #j.
+    ((CIKey( CI, k1 ) @ #i) ∧ (CIKey( CI, k2 ) @ #j)) ⇒ (k1 = k2)"
+  // safety formula
+
+  /*
+  expanded formula:
+  "∀ CI k1 k2 #i #j.
+    ((CIKey( CI, k1 ) @ #i) ∧ (CIKey( CI, k2 ) @ #j)) ⇒ (k1 = k2)"
+  */
+
+restriction UniqueCIReqEncKey:
+  "∀ CI k1 k2 #i #j.
+    ((CIReqEncSk( CI, k1 ) @ #i) ∧ (CIReqEncSk( CI, k2 ) @ #j)) ⇒ (k1 = k2)"
+  // safety formula
+
+  /*
+  expanded formula:
+  "∀ CI k1 k2 #i #j.
+    ((CIReqEncSk( CI, k1 ) @ #i) ∧ (CIReqEncSk( CI, k2 ) @ #j)) ⇒ (k1 = k2)"
+  */
+
+rule (modulo E) Register_CI[color=#fef3c7, role='Setup']:
+   [ Fr( ~ltkCI ) ]
+  --[
+  Register_CI( $CI ), CIKey( $CI, ~ltkCI ),
+  OnlyOnceV( <'register-ci', $CI> )
+  ]->
+   [ !Ltk_CI( $CI, ~ltkCI ), Out( pk(~ltkCI) ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) CI_Publish_RequestEncKey[color=#fef3c7, role='Setup']:
+   [ Fr( ~skR_CI ), !Ltk_CI( $CI, ~ltkCI ) ]
+  --[
+  CIRequestEncKey( $CI, pk(~skR_CI) ), CIReqEncSk( $CI, ~skR_CI ),
+  OnlyOnceV( <'ci-req-enc', $CI> )
+  ]->
+   [
+   !CI_ReqEncSk( $CI, ~skR_CI ), !CI_ReqEncPk( $CI, pk(~skR_CI) ),
+   Out( pk(~skR_CI) )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Wallet_Get_AT[color=#fef9c3, role='Wallet']:
+   [ Fr( ~sid ), Fr( ~skDPoP ), Fr( ~atSecret ) ]
+  --[
+  Wallet_Got_AT( $Wid, $CI, ~sid, aToken(~atSecret, pk(~skDPoP), $CI, $AS)
+  ),
+  ATIssued( $AS, $CI, $Wid, aToken(~atSecret, pk(~skDPoP), $CI, $AS),
+            pk(~skDPoP)
+  )
+  ]->
+   [
+   W_HasAT( $Wid, $CI, $AS, ~sid, aToken(~atSecret, pk(~skDPoP), $CI, $AS),
+            ~skDPoP, pk(~skDPoP)
+   ),
+   !Valid_AT( $CI, aToken(~atSecret, pk(~skDPoP), $CI, $AS), $AS, $Wid,
+              pk(~skDPoP)
+   ),
+   !StoredDPoPKey( $Wid, ~skDPoP, pk(~skDPoP) ),
+   !StoredAT( $Wid, $CI, aToken(~atSecret, pk(~skDPoP), $CI, $AS) )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Reveal_CI_Ltk[color=#fecaca, role='Adv']:
+   [ !Ltk_CI( $CI, ~ltkCI ) ] --[ Reveal_CI( $CI ) ]-> [ Out( ~ltkCI ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Reveal_CI_ReqEncKey_Rule[color=#fecaca, role='Adv']:
+   [ !CI_ReqEncSk( $CI, ~skR ) ]
+  --[ Reveal_CI_ReqEncKey( $CI ) ]->
+   [ Out( ~skR ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Reveal_HolderKey_Rule[color=#fecaca, role='Adv']:
+   [ !StoredHolderKey( $Wid, ~skH, pkH ) ]
+  --[ Reveal_HolderKey( $Wid, pkH ) ]->
+   [ Out( ~skH ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Reveal_WalletEncKey_Rule[color=#fecaca, role='Adv']:
+   [ !StoredWalletEncKey( $Wid, ~skE, pkE ) ]
+  --[ Reveal_WalletEncKey( $Wid, pkE ) ]->
+   [ Out( ~skE ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Reveal_DPoPKey_Rule[color=#fecaca, role='Adv']:
+   [ !StoredDPoPKey( $Wid, ~skDPoP, pkDPoP ) ]
+  --[ Reveal_DPoPKey( $Wid, pkDPoP ) ]->
+   [ Out( ~skDPoP ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Reveal_StoredAT_Rule[color=#fecaca, role='Adv']:
+   [ !StoredAT( $Wid, $CI, AT ) ]
+  --[ Reveal_StoredAT( $Wid, $CI, AT ) ]->
+   [ Out( AT ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Reveal_TxId_Rule[color=#fecaca, role='Adv']:
+   [ !PendingTxId( $Wid, $CI, tid ) ]
+  --[ Reveal_TxId( $Wid, $CI, tid ) ]->
+   [ Out( tid ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Reveal_WalletBindKey_Rule[color=#fecaca, role='Adv']:
+   [ !StoredBindKey( $Wid, ~skB, pkB ) ]
+  --[ Reveal_WalletBindKey( $Wid, pkB ) ]->
+   [ Out( ~skB ) ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Wallet_Send_Credential_Req___VARIANT_1[color=#d1fae5,
+                                                       role='Wallet']:
+   [
+   W_HasAT( $Wid, $CI, $AS, ~sid, AT, ~skDPoP, pkDPoP ),
+   !CI_ReqEncPk( $CI, pkR_CI ), Fr( ~skH ), Fr( ~iat ), Fr( ~jti_c ),
+   Fr( ~skE_W ), Fr( ~rEnc ), Fr( ~skB )
+   ]
+  --[
+  Wallet_Sent_Cred_Req( $Wid, $CI, ~sid, pk(~skH), AT ),
+  Wallet_Sent_Cred_Req_Bind( $Wid, $CI, ~sid, pk(~skB) ),
+  WalletGen_HolderKey( $Wid, ~sid, pk(~skH) ),
+  WalletGen_EncKey( $Wid, ~sid, pk(~skE_W) ),
+  WalletGen_BindKey( $Wid, ~sid, pk(~skB) ),
+  HolderKeyFresh( $Wid, ~skH, pk(~skH) ),
+  EncKeyFresh( $Wid, ~skE_W, pk(~skE_W) )
+  ]->
+   [
+   W_AwaitingTxId_FIXED( $Wid, $CI, $AS, ~sid, AT, ~skH, pk(~skH), ~skE_W,
+                         pk(~skE_W), ~skB, pk(~skB), ~skDPoP, pkDPoP
+   ),
+   !StoredHolderKey( $Wid, ~skH, pk(~skH) ),
+   !StoredWalletEncKey( $Wid, ~skE_W, pk(~skE_W) ),
+   !StoredBindKey( $Wid, ~skB, pk(~skB) ),
+   Out( <'credential-req-jwe', 
+         penc(<'credential-req-v2', AT, 
+               sign(<'dpop+jwt', $CI, 'POST', 'credential', pkDPoP, ~jti_c, AT>,
+                    ~skDPoP), 
+               pk(~skH), 
+               sign(<'openid4vci-proof+jwt-v2', 'ES256', pk(~skH), h(pk(~skB)), $CI, 
+                     ~iat>,
+                    ~skH), 
+               'crypt-resp', pk(~skE_W), 'tid-bind', pk(~skB)>,
+              pkR_CI, ~rEnc)
+        >
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+restriction Restr_CI_Credential_Endpoint_Defer_1:
+  "∀ x #NOW.
+    (Restr_CI_Credential_Endpoint_Defer_1( x ) @ #NOW) ⇒ (x = true)"
+  // safety formula
+
+  /*
+  expanded formula:
+  "∀ x #NOW.
+    (Restr_CI_Credential_Endpoint_Defer_1( x ) @ #NOW) ⇒ (x = true)"
+  */
+
+restriction Restr_CI_Credential_Endpoint_Defer_2:
+  "∀ x #NOW.
+    (Restr_CI_Credential_Endpoint_Defer_2( x ) @ #NOW) ⇒ (x = true)"
+  // safety formula
+
+  /*
+  expanded formula:
+  "∀ x #NOW.
+    (Restr_CI_Credential_Endpoint_Defer_2( x ) @ #NOW) ⇒ (x = true)"
+  */
+
+rule (modulo E) CI_Credential_Endpoint_Defer[color=#fef9c3, role='CI']:
+   [
+   In( <'credential-req-jwe', 
+        penc(<'credential-req-v2', AT, 
+              dpopProofCred($CI, pkDPoP, jti_c, AT, skDPoP_x), pkH, 
+              keyProofJWTV2($CI, pkH, pkB, iat, skH_x), 'crypt-resp', pkE_W, 
+              'tid-bind', pkB>,
+             pk(~skR_CI), rEnc)
+       >
+   ),
+   !CI_ReqEncSk( $CI, ~skR_CI ), !Valid_AT( $CI, AT, $AS, $Wid_at, pkDPoP ),
+   !Ltk_CI( $CI, ~ltkCI ), Fr( ~tid_ci ), Fr( ~rRespEnc )
+   ]
+  --[
+  OnlyOnceV( <'dpop-jti-cred', jti_c> ),
+  OnlyOnceV( <'tid-issued', ~tid_ci> ),
+  CI_Issued_TxId( $CI, $AS, $Wid_at, ~tid_ci, AT, pkH, pkE_W, pkDPoP ),
+  CI_Bound_TxId_To_PkB( $CI, ~tid_ci, pkB ),
+  Restr_CI_Credential_Endpoint_Defer_1( verify(keyProofJWTV2($CI, pkH, pkB,
+                                                             iat, skH_x),
+                                               keyProofPayloadV2($CI, pkH, pkB, iat), pkH)
+  ),
+  Restr_CI_Credential_Endpoint_Defer_2( verify(dpopProofCred($CI, pkDPoP,
+                                                             jti_c, AT, skDPoP_x),
+                                               dpopPayloadCred($CI, pkDPoP, jti_c, AT), pkDPoP)
+  )
+  ]->
+   [
+   !CI_PendingTx_Fixed( $CI, ~tid_ci, AT, $AS, $Wid_at, pkDPoP, pkH, pkB ),
+   !PendingTxId( $Wid_at, $CI, ~tid_ci ),
+   Out( penc(<'202-deferred', ~tid_ci>, pkE_W, ~rRespEnc) )
+   ]
+ variants
+  rule (modulo AC) CI_Credential_Endpoint_Defer___VARIANT_1[color=#fef9c3,
+                                                            role='CI']:
+     [
+     In( <'credential-req-jwe', 
+          penc(<'credential-req-v2', AT.3, 
+                sign(<'dpop+jwt', $CI.2, 'POST', 'credential', pkDPoP.7, jti_c.5, AT.3>,
+                     skDPoP_x.9), 
+                pkH.8, 
+                sign(<'openid4vci-proof+jwt-v2', 'ES256', pkH.8, h(pkB.6), $CI.2, iat.4>,
+                     skH_x.10), 
+                'crypt-resp', pkE_W, 'tid-bind', pkB.6>,
+               pk(~skR_CI), rEnc)
+         >
+     ),
+     !CI_ReqEncSk( $CI.2, ~skR_CI ),
+     !Valid_AT( $CI.2, AT.3, $AS, $Wid_at, pkDPoP.7 ),
+     !Ltk_CI( $CI.2, ~ltkCI ), Fr( ~tid_ci ), Fr( ~rRespEnc )
+     ]
+    --[
+    AUTO_OUT_TERM_1_0_0_1__Wallet_Receive_TxId( penc(<'202-deferred', ~tid_ci
+                                                     >,
+                                                     pkE_W, ~rRespEnc)
+    ),
+    OnlyOnceV( <'dpop-jti-cred', jti_c.5> ),
+    OnlyOnceV( <'tid-issued', ~tid_ci> ),
+    CI_Issued_TxId( $CI.2, $AS, $Wid_at, ~tid_ci, AT.3, pkH.8, pkE_W,
+                    pkDPoP.7
+    ),
+    CI_Bound_TxId_To_PkB( $CI.2, ~tid_ci, pkB.6 ),
+    Restr_CI_Credential_Endpoint_Defer_1( verify(sign(<
+                                                       'openid4vci-proof+jwt-v2', 'ES256', pkH.8, h(pkB.6), 
+                                                       $CI.2, iat.4>,
+                                                      skH_x.10),
+                                                 <'openid4vci-proof+jwt-v2', 'ES256', pkH.8, h(pkB.6), $CI.2, 
+                                                  iat.4>,
+                                                 pkH.8)
+    ),
+    Restr_CI_Credential_Endpoint_Defer_2( verify(sign(<'dpop+jwt', $CI.2, 
+                                                       'POST', 'credential', pkDPoP.7, jti_c.5, AT.3>,
+                                                      skDPoP_x.9),
+                                                 <'dpop+jwt', $CI.2, 'POST', 'credential', pkDPoP.7, jti_c.5, 
+                                                  AT.3>,
+                                                 pkDPoP.7)
+    )
+    ]->
+     [
+     !CI_PendingTx_Fixed( $CI.2, ~tid_ci, AT.3, $AS, $Wid_at, pkDPoP.7, pkH.8,
+                          pkB.6
+     ),
+     !PendingTxId( $Wid_at, $CI.2, ~tid_ci ),
+     Out( penc(<'202-deferred', ~tid_ci>, pkE_W, ~rRespEnc) )
+     ]
+  ,
+  rule (modulo AC) CI_Credential_Endpoint_Defer___VARIANT_2[color=#fef9c3,
+                                                            role='CI']:
+     [
+     In( <'credential-req-jwe', 
+          penc(<'credential-req-v2', AT.3, 
+                sign(<'dpop+jwt', $CI.2, 'POST', 'credential', pkDPoP.5, jti_c.4, AT.3>,
+                     skDPoP_x.6), 
+                pk(skH_x.7), 
+                sign(<'openid4vci-proof+jwt-v2', 'ES256', pk(skH_x.7), h(pkB), $CI.2, iat
+                     >,
+                     skH_x.7), 
+                'crypt-resp', pkE_W, 'tid-bind', pkB>,
+               pk(~skR_CI), rEnc)
+         >
+     ),
+     !CI_ReqEncSk( $CI.2, ~skR_CI ),
+     !Valid_AT( $CI.2, AT.3, $AS, $Wid_at, pkDPoP.5 ),
+     !Ltk_CI( $CI.2, ~ltkCI ), Fr( ~tid_ci ), Fr( ~rRespEnc )
+     ]
+    --[
+    AUTO_OUT_TERM_1_0_0_1__Wallet_Receive_TxId( penc(<'202-deferred', ~tid_ci
+                                                     >,
+                                                     pkE_W, ~rRespEnc)
+    ),
+    OnlyOnceV( <'dpop-jti-cred', jti_c.4> ),
+    OnlyOnceV( <'tid-issued', ~tid_ci> ),
+    CI_Issued_TxId( $CI.2, $AS, $Wid_at, ~tid_ci, AT.3, pk(skH_x.7), pkE_W,
+                    pkDPoP.5
+    ),
+    CI_Bound_TxId_To_PkB( $CI.2, ~tid_ci, pkB ),
+    Restr_CI_Credential_Endpoint_Defer_1( true ),
+    Restr_CI_Credential_Endpoint_Defer_2( verify(sign(<'dpop+jwt', $CI.2, 
+                                                       'POST', 'credential', pkDPoP.5, jti_c.4, AT.3>,
+                                                      skDPoP_x.6),
+                                                 <'dpop+jwt', $CI.2, 'POST', 'credential', pkDPoP.5, jti_c.4, 
+                                                  AT.3>,
+                                                 pkDPoP.5)
+    )
+    ]->
+     [
+     !CI_PendingTx_Fixed( $CI.2, ~tid_ci, AT.3, $AS, $Wid_at, pkDPoP.5,
+                          pk(skH_x.7), pkB
+     ),
+     !PendingTxId( $Wid_at, $CI.2, ~tid_ci ),
+     Out( penc(<'202-deferred', ~tid_ci>, pkE_W, ~rRespEnc) )
+     ]
+  ,
+  rule (modulo AC) CI_Credential_Endpoint_Defer___VARIANT_3[color=#fef9c3,
+                                                            role='CI']:
+     [
+     In( <'credential-req-jwe', 
+          penc(<'credential-req-v2', AT, 
+                sign(<'dpop+jwt', $CI.2, 'POST', 'credential', pk(skDPoP_x.6), jti_c, AT
+                     >,
+                     skDPoP_x.6), 
+                pkH.5, 
+                sign(<'openid4vci-proof+jwt-v2', 'ES256', pkH.5, h(pkB.4), $CI.2, iat.3>,
+                     skH_x.7), 
+                'crypt-resp', pkE_W, 'tid-bind', pkB.4>,
+               pk(~skR_CI), rEnc)
+         >
+     ),
+     !CI_ReqEncSk( $CI.2, ~skR_CI ),
+     !Valid_AT( $CI.2, AT, $AS, $Wid_at, pk(skDPoP_x.6) ),
+     !Ltk_CI( $CI.2, ~ltkCI ), Fr( ~tid_ci ), Fr( ~rRespEnc )
+     ]
+    --[
+    AUTO_OUT_TERM_1_0_0_1__Wallet_Receive_TxId( penc(<'202-deferred', ~tid_ci
+                                                     >,
+                                                     pkE_W, ~rRespEnc)
+    ),
+    OnlyOnceV( <'dpop-jti-cred', jti_c> ),
+    OnlyOnceV( <'tid-issued', ~tid_ci> ),
+    CI_Issued_TxId( $CI.2, $AS, $Wid_at, ~tid_ci, AT, pkH.5, pkE_W,
+                    pk(skDPoP_x.6)
+    ),
+    CI_Bound_TxId_To_PkB( $CI.2, ~tid_ci, pkB.4 ),
+    Restr_CI_Credential_Endpoint_Defer_1( verify(sign(<
+                                                       'openid4vci-proof+jwt-v2', 'ES256', pkH.5, h(pkB.4), 
+                                                       $CI.2, iat.3>,
+                                                      skH_x.7),
+                                                 <'openid4vci-proof+jwt-v2', 'ES256', pkH.5, h(pkB.4), $CI.2, 
+                                                  iat.3>,
+                                                 pkH.5)
+    ),
+    Restr_CI_Credential_Endpoint_Defer_2( true )
+    ]->
+     [
+     !CI_PendingTx_Fixed( $CI.2, ~tid_ci, AT, $AS, $Wid_at, pk(skDPoP_x.6),
+                          pkH.5, pkB.4
+     ),
+     !PendingTxId( $Wid_at, $CI.2, ~tid_ci ),
+     Out( penc(<'202-deferred', ~tid_ci>, pkE_W, ~rRespEnc) )
+     ]
+  ,
+  rule (modulo AC) CI_Credential_Endpoint_Defer___VARIANT_4[color=#fef9c3,
+                                                            role='CI']:
+     [
+     In( <'credential-req-jwe', 
+          penc(<'credential-req-v2', AT, 
+                sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(skDPoP_x.2), jti_c, AT>,
+                     skDPoP_x.2), 
+                pk(skH_x.3), 
+                sign(<'openid4vci-proof+jwt-v2', 'ES256', pk(skH_x.3), h(pkB), $CI, iat>,
+                     skH_x.3), 
+                'crypt-resp', pkE_W, 'tid-bind', pkB>,
+               pk(~skR_CI), rEnc)
+         >
+     ),
+     !CI_ReqEncSk( $CI, ~skR_CI ),
+     !Valid_AT( $CI, AT, $AS, $Wid_at, pk(skDPoP_x.2) ),
+     !Ltk_CI( $CI, ~ltkCI ), Fr( ~tid_ci ), Fr( ~rRespEnc )
+     ]
+    --[
+    AUTO_OUT_TERM_1_0_0_1__Wallet_Receive_TxId( penc(<'202-deferred', ~tid_ci
+                                                     >,
+                                                     pkE_W, ~rRespEnc)
+    ),
+    OnlyOnceV( <'dpop-jti-cred', jti_c> ),
+    OnlyOnceV( <'tid-issued', ~tid_ci> ),
+    CI_Issued_TxId( $CI, $AS, $Wid_at, ~tid_ci, AT, pk(skH_x.3), pkE_W,
+                    pk(skDPoP_x.2)
+    ),
+    CI_Bound_TxId_To_PkB( $CI, ~tid_ci, pkB ),
+    Restr_CI_Credential_Endpoint_Defer_1( true ),
+    Restr_CI_Credential_Endpoint_Defer_2( true )
+    ]->
+     [
+     !CI_PendingTx_Fixed( $CI, ~tid_ci, AT, $AS, $Wid_at, pk(skDPoP_x.2),
+                          pk(skH_x.3), pkB
+     ),
+     !PendingTxId( $Wid_at, $CI, ~tid_ci ),
+     Out( penc(<'202-deferred', ~tid_ci>, pkE_W, ~rRespEnc) )
+     ]
+
+rule (modulo E) Wallet_Receive_TxId[color=#d1fae5, role='Wallet']:
+   [
+   W_AwaitingTxId_FIXED( $Wid, $CI, $AS, ~sid, AT, ~skH, pkH, ~skE_W, pkE_W,
+                         ~skB, pkB, ~skDPoP, pkDPoP
+   ),
+   In( penc(<'202-deferred', tid>, pk(~skE_W), rRespEnc) )
+   ]
+  --[
+  AUTO_IN_TERM_1_0_0_1__Wallet_Receive_TxId( penc(<'202-deferred', tid>,
+                                                  pk(~skE_W), rRespEnc),
+                                             tid
+  ),
+  Wallet_Got_TxId( $Wid, $CI, ~sid, tid )
+  ]->
+   [
+   W_AwaitingDeferred_FIXED( $Wid, $CI, $AS, ~sid, AT, ~skH, pkH, ~skE_W,
+                             pkE_W, ~skB, pkB, ~skDPoP, pkDPoP, tid
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+rule (modulo E) Wallet_Send_Deferred_Req___VARIANT_1[color=#d1fae5,
+                                                     role='Wallet']:
+   [
+   W_AwaitingDeferred_FIXED( $Wid, $CI, $AS, ~sid, AT, ~skH, pkH, ~skE_W,
+                             pkE_W, ~skB, pkB, ~skDPoP, pkDPoP, tid
+   ),
+   !CI_ReqEncPk( $CI, pkR_CI ), Fr( ~jti_d ), Fr( ~rEnc )
+   ]
+  --[
+  Wallet_Sent_Deferred_Req( $Wid, $CI, ~sid, tid, pk(~skE_W) ),
+  Wallet_Sent_Deferred_BindSig( $Wid, ~sid, tid, pk(~skE_W) )
+  ]->
+   [
+   W_DeferredSent_FIXED( $Wid, $CI, $AS, ~sid, AT, ~skH, pkH, ~skE_W, pkE_W,
+                         ~skB, pkB, ~skDPoP, pkDPoP, tid
+   ),
+   Out( <'def-req-jwe', 
+         penc(<'def-req-fixed', AT, 
+               sign(<'dpop+jwt', $CI, 'POST', 'deferred', pkDPoP, ~jti_d, AT>,
+                    ~skDPoP), 
+               tid, 'crypt-resp', pk(~skE_W), 'tid-bind-sig', 
+               sign(<'oid4vci-tid-bind', $CI, tid, h(pk(~skE_W))>, ~skB)>,
+              pkR_CI, ~rEnc)
+        >
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+restriction Restr_CI_Deferred_Endpoint_Fixed_1:
+  "∀ x #NOW. (Restr_CI_Deferred_Endpoint_Fixed_1( x ) @ #NOW) ⇒ (x = true)"
+  // safety formula
+
+  /*
+  expanded formula:
+  "∀ x #NOW. (Restr_CI_Deferred_Endpoint_Fixed_1( x ) @ #NOW) ⇒ (x = true)"
+  */
+
+restriction Restr_CI_Deferred_Endpoint_Fixed_2:
+  "∀ x #NOW. (Restr_CI_Deferred_Endpoint_Fixed_2( x ) @ #NOW) ⇒ (x = true)"
+  // safety formula
+
+  /*
+  expanded formula:
+  "∀ x #NOW. (Restr_CI_Deferred_Endpoint_Fixed_2( x ) @ #NOW) ⇒ (x = true)"
+  */
+
+rule (modulo E) CI_Deferred_Endpoint_Fixed[color=#fef9c3, role='CI']:
+   [
+   In( <'def-req-jwe', 
+        penc(<'def-req-fixed', AT, 
+              dpopProofDef($CI, pkDPoP, jti_d, AT, skDPoP_x), tid, 'crypt-resp', 
+              pkE_new, 'tid-bind-sig', txIdBindSig($CI, tid, pkE_new, skB_x)>,
+             pk(~skR_CI), rEnc)
+       >
+   ),
+   !CI_ReqEncSk( $CI, ~skR_CI ),
+   !CI_PendingTx_Fixed( $CI, tid, AT, $AS, $Wid_at, pkDPoP, pkH, pkB ),
+   !Ltk_CI( $CI, ~ltkCI ), Fr( ~rRespEnc )
+   ]
+  --[
+  OnlyOnceV( <'dpop-jti-def', jti_d> ), OnlyOnceV( <'tid-redeemed', tid> ),
+  CI_Issued_Credential_Fixed( $CI, $AS, $Wid_at, pkH,
+                              credentialSig($CI, pkH, ~ltkCI), AT, tid, pkE_new, pkB
+  ),
+  CredIssued_For_PkH( $CI, pkH, AT, tid ),
+  CredEncryptedTo( $CI, credentialSig($CI, pkH, ~ltkCI), pkE_new ),
+  BoundCredential( credentialSig($CI, pkH, ~ltkCI), pkH ),
+  Restr_CI_Deferred_Endpoint_Fixed_1( verify(dpopProofDef($CI, pkDPoP,
+                                                          jti_d, AT, skDPoP_x),
+                                             dpopPayloadDef($CI, pkDPoP, jti_d, AT), pkDPoP)
+  ),
+  Restr_CI_Deferred_Endpoint_Fixed_2( verify(txIdBindSig($CI, tid, pkE_new,
+                                                         skB_x),
+                                             txIdBindPayload($CI, tid, pkE_new), pkB)
+  )
+  ]->
+   [
+   Out( penc(<'cred-resp', credentialSig($CI, pkH, ~ltkCI)>, pkE_new,
+             ~rRespEnc)
+   )
+   ]
+ variants
+  rule (modulo AC) CI_Deferred_Endpoint_Fixed___VARIANT_1[color=#fef9c3,
+                                                          role='CI']:
+     [
+     In( <'def-req-jwe', 
+          penc(<'def-req-fixed', AT.3, 
+                sign(<'dpop+jwt', $CI.2, 'POST', 'deferred', pkDPoP.5, jti_d.4, AT.3>,
+                     skDPoP_x.7), 
+                tid, 'crypt-resp', pkE_new, 'tid-bind-sig', 
+                sign(<'oid4vci-tid-bind', $CI.2, tid, h(pkE_new)>, skB_x.6)>,
+               pk(~skR_CI), rEnc)
+         >
+     ),
+     !CI_ReqEncSk( $CI.2, ~skR_CI ),
+     !CI_PendingTx_Fixed( $CI.2, tid, AT.3, $AS, $Wid_at, pkDPoP.5, pkH,
+                          pk(skB_x.6)
+     ),
+     !Ltk_CI( $CI.2, ~ltkCI ), Fr( ~rRespEnc )
+     ]
+    --[
+    OnlyOnceV( <'dpop-jti-def', jti_d.4> ),
+    OnlyOnceV( <'tid-redeemed', tid> ),
+    CI_Issued_Credential_Fixed( $CI.2, $AS, $Wid_at, pkH,
+                                sign(<'credential', $CI.2, 'PII-dataset', pkH>, ~ltkCI), AT.3, tid,
+                                pkE_new, pk(skB_x.6)
+    ),
+    CredIssued_For_PkH( $CI.2, pkH, AT.3, tid ),
+    CredEncryptedTo( $CI.2,
+                     sign(<'credential', $CI.2, 'PII-dataset', pkH>, ~ltkCI), pkE_new
+    ),
+    BoundCredential( sign(<'credential', $CI.2, 'PII-dataset', pkH>, ~ltkCI),
+                     pkH
+    ),
+    Restr_CI_Deferred_Endpoint_Fixed_1( verify(sign(<'dpop+jwt', $CI.2, 
+                                                     'POST', 'deferred', pkDPoP.5, jti_d.4, AT.3>,
+                                                    skDPoP_x.7),
+                                               <'dpop+jwt', $CI.2, 'POST', 'deferred', pkDPoP.5, jti_d.4, AT.3
+                                               >,
+                                               pkDPoP.5)
+    ),
+    Restr_CI_Deferred_Endpoint_Fixed_2( true )
+    ]->
+     [
+     Out( penc(<'cred-resp', 
+                sign(<'credential', $CI.2, 'PII-dataset', pkH>, ~ltkCI)>,
+               pkE_new, ~rRespEnc)
+     )
+     ]
+  ,
+  rule (modulo AC) CI_Deferred_Endpoint_Fixed___VARIANT_2[color=#fef9c3,
+                                                          role='CI']:
+     [
+     In( <'def-req-jwe', 
+          penc(<'def-req-fixed', AT.3, 
+                sign(<'dpop+jwt', $CI.2, 'POST', 'deferred', pkDPoP.6, jti_d.4, AT.3>,
+                     skDPoP_x.9), 
+                tid.10, 'crypt-resp', pkE_new.7, 'tid-bind-sig', 
+                sign(<'oid4vci-tid-bind', $CI.2, tid.10, h(pkE_new.7)>, skB_x.8)>,
+               pk(~skR_CI), rEnc)
+         >
+     ),
+     !CI_ReqEncSk( $CI.2, ~skR_CI ),
+     !CI_PendingTx_Fixed( $CI.2, tid.10, AT.3, $AS, $Wid_at, pkDPoP.6, pkH,
+                          pkB.5
+     ),
+     !Ltk_CI( $CI.2, ~ltkCI ), Fr( ~rRespEnc )
+     ]
+    --[
+    OnlyOnceV( <'dpop-jti-def', jti_d.4> ),
+    OnlyOnceV( <'tid-redeemed', tid.10> ),
+    CI_Issued_Credential_Fixed( $CI.2, $AS, $Wid_at, pkH,
+                                sign(<'credential', $CI.2, 'PII-dataset', pkH>, ~ltkCI), AT.3, tid.10,
+                                pkE_new.7, pkB.5
+    ),
+    CredIssued_For_PkH( $CI.2, pkH, AT.3, tid.10 ),
+    CredEncryptedTo( $CI.2,
+                     sign(<'credential', $CI.2, 'PII-dataset', pkH>, ~ltkCI), pkE_new.7
+    ),
+    BoundCredential( sign(<'credential', $CI.2, 'PII-dataset', pkH>, ~ltkCI),
+                     pkH
+    ),
+    Restr_CI_Deferred_Endpoint_Fixed_1( verify(sign(<'dpop+jwt', $CI.2, 
+                                                     'POST', 'deferred', pkDPoP.6, jti_d.4, AT.3>,
+                                                    skDPoP_x.9),
+                                               <'dpop+jwt', $CI.2, 'POST', 'deferred', pkDPoP.6, jti_d.4, AT.3
+                                               >,
+                                               pkDPoP.6)
+    ),
+    Restr_CI_Deferred_Endpoint_Fixed_2( verify(sign(<'oid4vci-tid-bind', 
+                                                     $CI.2, tid.10, h(pkE_new.7)>,
+                                                    skB_x.8),
+                                               <'oid4vci-tid-bind', $CI.2, tid.10, h(pkE_new.7)>, pkB.5)
+    )
+    ]->
+     [
+     Out( penc(<'cred-resp', 
+                sign(<'credential', $CI.2, 'PII-dataset', pkH>, ~ltkCI)>,
+               pkE_new.7, ~rRespEnc)
+     )
+     ]
+  ,
+  rule (modulo AC) CI_Deferred_Endpoint_Fixed___VARIANT_3[color=#fef9c3,
+                                                          role='CI']:
+     [
+     In( <'def-req-jwe', 
+          penc(<'def-req-fixed', AT, 
+                sign(<'dpop+jwt', $CI.2, 'POST', 'deferred', pk(skDPoP_x.6), jti_d, AT>,
+                     skDPoP_x.6), 
+                tid.7, 'crypt-resp', pkE_new.4, 'tid-bind-sig', 
+                sign(<'oid4vci-tid-bind', $CI.2, tid.7, h(pkE_new.4)>, skB_x.5)>,
+               pk(~skR_CI), rEnc)
+         >
+     ),
+     !CI_ReqEncSk( $CI.2, ~skR_CI ),
+     !CI_PendingTx_Fixed( $CI.2, tid.7, AT, $AS, $Wid_at, pk(skDPoP_x.6), pkH,
+                          pkB.3
+     ),
+     !Ltk_CI( $CI.2, ~ltkCI ), Fr( ~rRespEnc )
+     ]
+    --[
+    OnlyOnceV( <'dpop-jti-def', jti_d> ),
+    OnlyOnceV( <'tid-redeemed', tid.7> ),
+    CI_Issued_Credential_Fixed( $CI.2, $AS, $Wid_at, pkH,
+                                sign(<'credential', $CI.2, 'PII-dataset', pkH>, ~ltkCI), AT, tid.7,
+                                pkE_new.4, pkB.3
+    ),
+    CredIssued_For_PkH( $CI.2, pkH, AT, tid.7 ),
+    CredEncryptedTo( $CI.2,
+                     sign(<'credential', $CI.2, 'PII-dataset', pkH>, ~ltkCI), pkE_new.4
+    ),
+    BoundCredential( sign(<'credential', $CI.2, 'PII-dataset', pkH>, ~ltkCI),
+                     pkH
+    ),
+    Restr_CI_Deferred_Endpoint_Fixed_1( true ),
+    Restr_CI_Deferred_Endpoint_Fixed_2( verify(sign(<'oid4vci-tid-bind', 
+                                                     $CI.2, tid.7, h(pkE_new.4)>,
+                                                    skB_x.5),
+                                               <'oid4vci-tid-bind', $CI.2, tid.7, h(pkE_new.4)>, pkB.3)
+    )
+    ]->
+     [
+     Out( penc(<'cred-resp', 
+                sign(<'credential', $CI.2, 'PII-dataset', pkH>, ~ltkCI)>,
+               pkE_new.4, ~rRespEnc)
+     )
+     ]
+  ,
+  rule (modulo AC) CI_Deferred_Endpoint_Fixed___VARIANT_4[color=#fef9c3,
+                                                          role='CI']:
+     [
+     In( <'def-req-jwe', 
+          penc(<'def-req-fixed', AT, 
+                sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(skDPoP_x.3), jti_d, AT>,
+                     skDPoP_x.3), 
+                tid, 'crypt-resp', pkE_new, 'tid-bind-sig', 
+                sign(<'oid4vci-tid-bind', $CI, tid, h(pkE_new)>, skB_x.2)>,
+               pk(~skR_CI), rEnc)
+         >
+     ),
+     !CI_ReqEncSk( $CI, ~skR_CI ),
+     !CI_PendingTx_Fixed( $CI, tid, AT, $AS, $Wid_at, pk(skDPoP_x.3), pkH,
+                          pk(skB_x.2)
+     ),
+     !Ltk_CI( $CI, ~ltkCI ), Fr( ~rRespEnc )
+     ]
+    --[
+    OnlyOnceV( <'dpop-jti-def', jti_d> ), OnlyOnceV( <'tid-redeemed', tid> ),
+    CI_Issued_Credential_Fixed( $CI, $AS, $Wid_at, pkH,
+                                sign(<'credential', $CI, 'PII-dataset', pkH>, ~ltkCI), AT, tid, pkE_new,
+                                pk(skB_x.2)
+    ),
+    CredIssued_For_PkH( $CI, pkH, AT, tid ),
+    CredEncryptedTo( $CI,
+                     sign(<'credential', $CI, 'PII-dataset', pkH>, ~ltkCI), pkE_new
+    ),
+    BoundCredential( sign(<'credential', $CI, 'PII-dataset', pkH>, ~ltkCI),
+                     pkH
+    ),
+    Restr_CI_Deferred_Endpoint_Fixed_1( true ),
+    Restr_CI_Deferred_Endpoint_Fixed_2( true )
+    ]->
+     [
+     Out( penc(<'cred-resp', 
+                sign(<'credential', $CI, 'PII-dataset', pkH>, ~ltkCI)>,
+               pkE_new, ~rRespEnc)
+     )
+     ]
+
+rule (modulo E) Wallet_Receive_Credential_Fixed___VARIANT_1[color=#d1fae5,
+                                                            role='Wallet']:
+   [
+   W_DeferredSent_FIXED( $Wid, $CI, $AS, ~sid, AT, ~skH, pkH, ~skE_W, pkE_W,
+                         ~skB, pkB, ~skDPoP, pkDPoP, tid
+   ),
+   In( penc(<'cred-resp', 
+             sign(<'credential', $CI, 'PII-dataset', pkH>, ~ltkCI)>,
+            pk(~skE_W), rRespEnc)
+   ),
+   !Ltk_CI( $CI, ~ltkCI )
+   ]
+  --[
+  Wallet_Accepted_Credential( $Wid, $CI, ~sid, pkH,
+                              sign(<'credential', $CI, 'PII-dataset', pkH>, ~ltkCI)
+  ),
+  Finish( $Wid, $CI, ~sid )
+  ]->
+   [
+   !Wallet_Holds_Credential( $Wid, pkH, ~skH,
+                             sign(<'credential', $CI, 'PII-dataset', pkH>, ~ltkCI)
+   )
+   ]
+
+  /* has exactly the trivial AC variant */
+
+lemma skR_CI_secrecy [reuse, use_induction]:
+  all-traces
+  "∀ CI skR #r #i.
+    ((CIReqEncSk( CI, skR ) @ #r) ∧ (!KU( skR ) @ #i)) ⇒
+    (∃ #l. (Reveal_CI_ReqEncKey( CI ) @ #l) ∧ (#l < #i))"
+/*
+guarded formula characterizing all counter-examples:
+"∃ CI skR #r #i.
+  (CIReqEncSk( CI, skR ) @ #r) ∧ (!KU( skR ) @ #i)
+ ∧
+  ∀ #l. (Reveal_CI_ReqEncKey( CI ) @ #l) ⇒ ¬(#l < #i)"
+*/
+induction
+  case empty_trace
+  by contradiction /* from formulas */
+next
+  case non_empty_trace
+  solve( (last(#i))  ∥ (last(#r))  ∥
+         (∃ #l. (Reveal_CI_ReqEncKey( $CI ) @ #l) ∧ (¬(last(#l))) ∧ (#l < #i)) )
+    case case_1
+    solve( !Ltk_CI( $CI, ~ltkCI ) ▶₁ #r )
+      case Register_CI
+      solve( !KU( ~skR_CI ) @ #i )
+        case Reveal_CI_ReqEncKey_Rule
+        by contradiction /* from formulas */
+      qed
+    qed
+  next
+    case case_2
+    solve( !Ltk_CI( $CI, ~ltkCI ) ▶₁ #r )
+      case Register_CI
+      solve( !KU( ~skR_CI ) @ #i )
+        case Reveal_CI_ReqEncKey_Rule
+        by contradiction /* from formulas */
+      qed
+    qed
+  next
+    case case_3
+    by contradiction /* from formulas */
+  qed
+qed
+
+lemma ltkCI_secrecy [reuse, use_induction]:
+  all-traces
+  "∀ CI k #r #i.
+    ((CIKey( CI, k ) @ #r) ∧ (!KU( k ) @ #i)) ⇒
+    (∃ #l. (Reveal_CI( CI ) @ #l) ∧ (#l < #i))"
+/*
+guarded formula characterizing all counter-examples:
+"∃ CI k #r #i.
+  (CIKey( CI, k ) @ #r) ∧ (!KU( k ) @ #i)
+ ∧
+  ∀ #l. (Reveal_CI( CI ) @ #l) ⇒ ¬(#l < #i)"
+*/
+induction
+  case empty_trace
+  by contradiction /* from formulas */
+next
+  case non_empty_trace
+  solve( (last(#i))  ∥ (last(#r))  ∥
+         (∃ #l. (Reveal_CI( $CI ) @ #l) ∧ (¬(last(#l))) ∧ (#l < #i)) )
+    case case_1
+    solve( !KU( ~ltkCI ) @ #i )
+      case Reveal_CI_Ltk
+      by contradiction /* from formulas */
+    qed
+  next
+    case case_2
+    solve( !KU( ~ltkCI ) @ #i )
+      case Reveal_CI_Ltk
+      by contradiction /* from formulas */
+    qed
+  next
+    case case_3
+    by contradiction /* from formulas */
+  qed
+qed
+
+lemma skH_secrecy [reuse, use_induction]:
+  all-traces
+  "∀ Wid skH pkH #r #i.
+    ((HolderKeyFresh( Wid, skH, pkH ) @ #r) ∧ (!KU( skH ) @ #i)) ⇒
+    (∃ #l. (Reveal_HolderKey( Wid, pkH ) @ #l) ∧ (#l < #i))"
+/*
+guarded formula characterizing all counter-examples:
+"∃ Wid skH pkH #r #i.
+  (HolderKeyFresh( Wid, skH, pkH ) @ #r) ∧ (!KU( skH ) @ #i)
+ ∧
+  ∀ #l. (Reveal_HolderKey( Wid, pkH ) @ #l) ⇒ ¬(#l < #i)"
+*/
+induction
+  case empty_trace
+  by contradiction /* from formulas */
+next
+  case non_empty_trace
+  solve( (last(#i))  ∥ (last(#r))  ∥
+         (∃ #l.
+           (Reveal_HolderKey( $Wid, pk(~skH) ) @ #l) ∧ (¬(last(#l))) ∧ (#l < #i)) )
+    case case_1
+    solve( W_HasAT( $Wid, $CI, $AS, ~sid, AT, ~skDPoP, pkDPoP ) ▶₀ #r )
+      case Wallet_Get_AT
+      solve( !CI_ReqEncPk( $CI, pkR_CI ) ▶₁ #r )
+        case CI_Publish_RequestEncKey
+        solve( !KU( ~skH ) @ #i )
+          case Reveal_HolderKey_Rule
+          by contradiction /* from formulas */
+        qed
+      qed
+    qed
+  next
+    case case_2
+    solve( W_HasAT( $Wid, $CI, $AS, ~sid, AT, ~skDPoP, pkDPoP ) ▶₀ #r )
+      case Wallet_Get_AT
+      solve( !CI_ReqEncPk( $CI, pkR_CI ) ▶₁ #r )
+        case CI_Publish_RequestEncKey
+        solve( !KU( ~skH ) @ #i )
+          case Reveal_HolderKey_Rule
+          by contradiction /* from formulas */
+        qed
+      qed
+    qed
+  next
+    case case_3
+    by contradiction /* from formulas */
+  qed
+qed
+
+lemma skE_W_secrecy [reuse, use_induction]:
+  all-traces
+  "∀ Wid skE pkE #r #i.
+    ((EncKeyFresh( Wid, skE, pkE ) @ #r) ∧ (!KU( skE ) @ #i)) ⇒
+    (∃ #l. (Reveal_WalletEncKey( Wid, pkE ) @ #l) ∧ (#l < #i))"
+/*
+guarded formula characterizing all counter-examples:
+"∃ Wid skE pkE #r #i.
+  (EncKeyFresh( Wid, skE, pkE ) @ #r) ∧ (!KU( skE ) @ #i)
+ ∧
+  ∀ #l. (Reveal_WalletEncKey( Wid, pkE ) @ #l) ⇒ ¬(#l < #i)"
+*/
+induction
+  case empty_trace
+  by contradiction /* from formulas */
+next
+  case non_empty_trace
+  solve( (last(#i))  ∥ (last(#r))  ∥
+         (∃ #l.
+           (Reveal_WalletEncKey( $Wid, pk(~skE_W) ) @ #l)
+          ∧
+           (¬(last(#l))) ∧ (#l < #i)) )
+    case case_1
+    solve( W_HasAT( $Wid, $CI, $AS, ~sid, AT, ~skDPoP, pkDPoP ) ▶₀ #r )
+      case Wallet_Get_AT
+      solve( !CI_ReqEncPk( $CI, pkR_CI ) ▶₁ #r )
+        case CI_Publish_RequestEncKey
+        solve( !KU( ~skE_W ) @ #i )
+          case Reveal_WalletEncKey_Rule
+          by contradiction /* from formulas */
+        qed
+      qed
+    qed
+  next
+    case case_2
+    solve( W_HasAT( $Wid, $CI, $AS, ~sid, AT, ~skDPoP, pkDPoP ) ▶₀ #r )
+      case Wallet_Get_AT
+      solve( !CI_ReqEncPk( $CI, pkR_CI ) ▶₁ #r )
+        case CI_Publish_RequestEncKey
+        solve( !KU( ~skE_W ) @ #i )
+          case Reveal_WalletEncKey_Rule
+          by contradiction /* from formulas */
+        qed
+      qed
+    qed
+  next
+    case case_3
+    by contradiction /* from formulas */
+  qed
+qed
+
+lemma helper_pkH_unique [reuse, use_induction]:
+  all-traces
+  "∀ Wid1 Wid2 s1 s2 pkH #i #j.
+    ((WalletGen_HolderKey( Wid1, s1, pkH ) @ #i) ∧
+     (WalletGen_HolderKey( Wid2, s2, pkH ) @ #j)) ⇒
+    (#i = #j)"
+/*
+guarded formula characterizing all counter-examples:
+"∃ Wid1 Wid2 s1 s2 pkH #i #j.
+  (WalletGen_HolderKey( Wid1, s1, pkH ) @ #i) ∧
+  (WalletGen_HolderKey( Wid2, s2, pkH ) @ #j)
+ ∧
+  ¬(#i = #j)"
+*/
+induction
+  case empty_trace
+  by contradiction /* from formulas */
+next
+  case non_empty_trace
+  by contradiction /* from formulas */
+qed
+
+lemma helper_pkE_unique [reuse, use_induction]:
+  all-traces
+  "∀ Wid1 Wid2 s1 s2 pkE #i #j.
+    ((WalletGen_EncKey( Wid1, s1, pkE ) @ #i) ∧
+     (WalletGen_EncKey( Wid2, s2, pkE ) @ #j)) ⇒
+    (#i = #j)"
+/*
+guarded formula characterizing all counter-examples:
+"∃ Wid1 Wid2 s1 s2 pkE #i #j.
+  (WalletGen_EncKey( Wid1, s1, pkE ) @ #i) ∧
+  (WalletGen_EncKey( Wid2, s2, pkE ) @ #j)
+ ∧
+  ¬(#i = #j)"
+*/
+induction
+  case empty_trace
+  by contradiction /* from formulas */
+next
+  case non_empty_trace
+  by contradiction /* from formulas */
+qed
+
+lemma helper_skB_unique [reuse, use_induction]:
+  all-traces
+  "∀ Wid1 Wid2 s1 s2 pkB #i #j.
+    ((WalletGen_BindKey( Wid1, s1, pkB ) @ #i) ∧
+     (WalletGen_BindKey( Wid2, s2, pkB ) @ #j)) ⇒
+    (#i = #j)"
+/*
+guarded formula characterizing all counter-examples:
+"∃ Wid1 Wid2 s1 s2 pkB #i #j.
+  (WalletGen_BindKey( Wid1, s1, pkB ) @ #i) ∧
+  (WalletGen_BindKey( Wid2, s2, pkB ) @ #j)
+ ∧
+  ¬(#i = #j)"
+*/
+induction
+  case empty_trace
+  by contradiction /* from formulas */
+next
+  case non_empty_trace
+  by contradiction /* from formulas */
+qed
+
+lemma exec_full_honest_deferred_flow:
+  exists-trace
+  "∃ Wid CI sid pkH sig #f.
+    (((((((Finish( Wid, CI, sid ) @ #f) ∧
+          (Wallet_Accepted_Credential( Wid, CI, sid, pkH, sig ) @ #f)) ∧
+         (¬(∃ #r. Reveal_CI( CI ) @ #r))) ∧
+        (¬(∃ p #r. Reveal_HolderKey( Wid, p ) @ #r))) ∧
+       (¬(∃ p #r. Reveal_WalletEncKey( Wid, p ) @ #r))) ∧
+      (¬(∃ at #r. Reveal_StoredAT( Wid, CI, at ) @ #r))) ∧
+     (¬(∃ p #r. Reveal_DPoPKey( Wid, p ) @ #r))) ∧
+    (¬(∃ t #r. Reveal_TxId( Wid, CI, t ) @ #r))"
+/*
+guarded formula characterizing all satisfying traces:
+"∃ Wid CI sid pkH sig #f.
+  (Finish( Wid, CI, sid ) @ #f) ∧
+  (Wallet_Accepted_Credential( Wid, CI, sid, pkH, sig ) @ #f)
+ ∧
+  (∀ #r. (Reveal_CI( CI ) @ #r) ⇒ ⊥) ∧
+  (∀ p #r. (Reveal_HolderKey( Wid, p ) @ #r) ⇒ ⊥) ∧
+  (∀ p #r. (Reveal_WalletEncKey( Wid, p ) @ #r) ⇒ ⊥) ∧
+  (∀ at #r. (Reveal_StoredAT( Wid, CI, at ) @ #r) ⇒ ⊥) ∧
+  (∀ p #r. (Reveal_DPoPKey( Wid, p ) @ #r) ⇒ ⊥) ∧
+  (∀ t #r. (Reveal_TxId( Wid, CI, t ) @ #r) ⇒ ⊥)"
+*/
+simplify
+solve( W_DeferredSent_FIXED( $Wid, $CI, $AS, ~sid, AT, ~skH, pkH, ~skE_W,
+                             pkE_W, ~skB, pkB, ~skDPoP, pkDPoP, tid
+       ) ▶₀ #f )
+  case Wallet_Send_Deferred_Req___VARIANT_1
+  solve( !Ltk_CI( $CI, ~ltkCI ) ▶₂ #f )
+    case Register_CI
+    solve( !KU( penc(<'cred-resp', 
+                      sign(<'credential', $CI, 'PII-dataset', pk(~skH)>, ~ltkCI)>,
+                     pk(~skE_W), rRespEnc)
+           ) @ #vk )
+      case CI_Deferred_Endpoint_Fixed___VARIANT_4
+      solve( !KU( penc(<'202-deferred', tid>, pk(~skE_W), rRespEnc.1)
+             ) @ #vk.1 )
+        case CI_Credential_Endpoint_Defer___VARIANT_4
+        solve( !KU( penc(<'def-req-fixed', 
+                          aToken(~atSecret.1, pk(~skDPoP.1), $CI, $AS.1), 
+                          sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(~skDPoP.1), jti_d.1, 
+                                aToken(~atSecret.1, pk(~skDPoP.1), $CI, $AS.1)>,
+                               ~skDPoP.1), 
+                          ~tid_ci.1, 'crypt-resp', pk(~skE_W), 'tid-bind-sig', 
+                          sign(<'oid4vci-tid-bind', $CI, ~tid_ci.1, h(pk(~skE_W))>, skB_x)>,
+                         pk(~skR_CI), rEnc.2)
+               ) @ #vk.4 )
+          case Wallet_Send_Deferred_Req___VARIANT_1
+          solve( !KU( penc(<'credential-req-v2', 
+                            aToken(~atSecret, pk(~skDPoP), $CI, $AS), 
+                            sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP), jti_c.1, 
+                                  aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,
+                                 ~skDPoP), 
+                            pk(~skH), 
+                            sign(<'openid4vci-proof+jwt-v2', 'ES256', pk(~skH), h(pk(~skB)), $CI, 
+                                  iat.1>,
+                                 ~skH), 
+                            'crypt-resp', pk(~skE_W), 'tid-bind', pk(~skB)>,
+                           pk(~skR_CI), rEnc.2)
+                 ) @ #vk.7 )
+            case Wallet_Send_Credential_Req___VARIANT_1
+            SOLVED // trace found
+          qed
+        qed
+      qed
+    qed
+  qed
+qed
+
+lemma P50_holder_binding_preserved [heuristic={P50_tactic}]:
+  all-traces
+  "∀ CI pkH AT tid #i.
+    (((CredIssued_For_PkH( CI, pkH, AT, tid ) @ #i) ∧
+      (¬(∃ #r. Reveal_CI( CI ) @ #r))) ∧
+     (¬(∃ #r. Reveal_CI_ReqEncKey( CI ) @ #r))) ⇒
+    (((∃ Wid s #g. (WalletGen_HolderKey( Wid, s, pkH ) @ #g) ∧ (#g < #i)) ∨
+      (∃ Wid #r. (Reveal_HolderKey( Wid, pkH ) @ #r) ∧ (#r < #i))) ∨
+     (∃ #k. (!KU( pkH ) @ #k) ∧ (#k < #i)))"
+/*
+guarded formula characterizing all counter-examples:
+"∃ CI pkH AT tid #i.
+  (CredIssued_For_PkH( CI, pkH, AT, tid ) @ #i)
+ ∧
+  (∀ #r. (Reveal_CI( CI ) @ #r) ⇒ ⊥) ∧
+  (∀ #r. (Reveal_CI_ReqEncKey( CI ) @ #r) ⇒ ⊥) ∧
+  (∀ Wid s #g. (WalletGen_HolderKey( Wid, s, pkH ) @ #g) ⇒ ¬(#g < #i)) ∧
+  (∀ Wid #r. (Reveal_HolderKey( Wid, pkH ) @ #r) ⇒ ¬(#r < #i)) ∧
+  (∀ #k. (!KU( pkH ) @ #k) ⇒ ¬(#k < #i))"
+*/
+simplify
+solve( CredIssued_For_PkH( CI, pkH, AT, tid ) @ #i )
+  case CI_Deferred_Endpoint_Fixed___VARIANT_4
+  solve( !KU( penc(<'def-req-fixed', AT, 
+                    sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(skDPoP_x), jti_d, AT>,
+                         skDPoP_x), 
+                    tid, 'crypt-resp', pkE_new, 'tid-bind-sig', 
+                    sign(<'oid4vci-tid-bind', $CI, tid, h(pkE_new)>, skB_x)>,
+                   pk(~skR_CI), rEnc)
+         ) @ #vk.2 )
+    case Wallet_Send_Deferred_Req___VARIANT_1
+    solve( !CI_ReqEncSk( $CI, ~skR_CI ) ▶₁ #i )
+      case CI_Publish_RequestEncKey
+      solve( !CI_PendingTx_Fixed( $CI, tid,
+                                  aToken(~atSecret, pk(~skDPoP), $CI, $AS), $AS.1, $Wid_at, pk(~skDPoP),
+                                  pkH, pk(~skB)
+             ) ▶₂ #i )
+        case CI_Credential_Endpoint_Defer___VARIANT_4
+        solve( !Ltk_CI( $CI, ~ltkCI ) ▶₃ #i )
+          case Register_CI
+          solve( !KU( penc(<'202-deferred', ~tid_ci>, pk(~skE_W), rRespEnc.1)
+                 ) @ #vk.3 )
+            case CI_Credential_Endpoint_Defer___VARIANT_4
+            solve( !KU( penc(<'credential-req-v2', 
+                              aToken(~atSecret, pk(~skDPoP), $CI, $AS), 
+                              sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP), jti_c.1, 
+                                    aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,
+                                   ~skDPoP), 
+                              pk(skH_x), 
+                              sign(<'openid4vci-proof+jwt-v2', 'ES256', pk(skH_x), h(pk(~skB)), $CI, 
+                                    iat.1>,
+                                   skH_x), 
+                              'crypt-resp', pk(~skE_W), 'tid-bind', pk(~skB)>,
+                             pk(~skR_CI), rEnc.2)
+                   ) @ #vk.6 )
+              case Wallet_Send_Credential_Req___VARIANT_1
+              by contradiction /* from formulas */
+            next
+              case c_penc
+              by contradiction /* from formulas */
+            qed
+          next
+            case c_penc
+            solve( !KU( pk(~skE_W) ) @ #vk.8 )
+              case Wallet_Send_Credential_Req___VARIANT_1
+              by contradiction /* from formulas */
+            next
+              case Wallet_Send_Deferred_Req___VARIANT_1
+              by contradiction /* cyclic */
+            next
+              case c_pk
+              solve( !KU( penc(<'credential-req-v2', 
+                                aToken(~atSecret, pk(~skDPoP), $CI, $AS), 
+                                sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP), jti_c.1, 
+                                      aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,
+                                     ~skDPoP), 
+                                pk(skH_x), 
+                                sign(<'openid4vci-proof+jwt-v2', 'ES256', pk(skH_x), h(pk(~skB)), $CI, 
+                                      iat.1>,
+                                     skH_x), 
+                                'crypt-resp', pkE_W, 'tid-bind', pk(~skB)>,
+                               pk(~skR_CI), rEnc.2)
+                     ) @ #vk.7 )
+                case Wallet_Send_Credential_Req___VARIANT_1
+                by contradiction /* from formulas */
+              next
+                case c_penc
+                by contradiction /* from formulas */
+              qed
+            qed
+          qed
+        qed
+      qed
+    qed
+  next
+    case c_penc
+    solve( !KU( pk(~skR_CI) ) @ #vk.4 )
+      case CI_Publish_RequestEncKey
+      solve( !CI_ReqEncSk( $CI, ~skR_CI ) ▶₁ #i )
+        case CI_Publish_RequestEncKey
+        solve( !CI_PendingTx_Fixed( $CI, tid, AT, $AS, $Wid_at, pk(skDPoP_x),
+                                    pkH, pk(skB_x)
+               ) ▶₂ #i )
+          case CI_Credential_Endpoint_Defer___VARIANT_4
+          solve( !Ltk_CI( $CI, ~ltkCI ) ▶₃ #i )
+            case Register_CI
+            solve( !KU( sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(~skDPoP), 
+                              jti_d, aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,
+                             ~skDPoP)
+                   ) @ #vk.10 )
+              case Wallet_Send_Deferred_Req___VARIANT_1
+              by contradiction /* from formulas */
+            next
+              case c_sign
+              solve( !KU( pk(~skDPoP) ) @ #vk.34 )
+                case c_pk
+                solve( !KU( sign(<'oid4vci-tid-bind', $CI, ~tid_ci, h(pkE_new)>, skB_x)
+                       ) @ #vk.22 )
+                  case Wallet_Send_Deferred_Req___VARIANT_1
+                  by contradiction /* from formulas */
+                next
+                  case c_sign
+                  solve( !KU( penc(<'credential-req-v2', 
+                                    aToken(~atSecret, pk(~skDPoP), $CI, $AS), 
+                                    sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP), jti_c, 
+                                          aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,
+                                         ~skDPoP), 
+                                    pk(skH_x), 
+                                    sign(<'openid4vci-proof+jwt-v2', 'ES256', pk(skH_x), h(pk(skB_x)), $CI, 
+                                          iat>,
+                                         skH_x), 
+                                    'crypt-resp', pkE_W, 'tid-bind', pk(skB_x)>,
+                                   pk(~skR_CI), rEnc.1)
+                         ) @ #vk.27 )
+                    case Wallet_Send_Credential_Req___VARIANT_1
+                    by contradiction /* from formulas */
+                  next
+                    case c_penc
+                    by contradiction /* from formulas */
+                  qed
+                qed
+              qed
+            qed
+          qed
+        qed
+      qed
+    next
+      case Register_CI
+      by solve( !CI_ReqEncSk( $CI, ~skR_CI ) ▶₁ #i )
+    next
+      case Wallet_Send_Credential_Req___VARIANT_1_case_1
+      by solve( !CI_ReqEncSk( $CI, ~skR_CI ) ▶₁ #i )
+    next
+      case Wallet_Send_Credential_Req___VARIANT_1_case_2
+      by solve( !CI_ReqEncSk( $CI, ~skR_CI ) ▶₁ #i )
+    next
+      case Wallet_Send_Credential_Req___VARIANT_1_case_3
+      by solve( !CI_ReqEncSk( $CI, ~skR_CI ) ▶₁ #i )
+    next
+      case Wallet_Send_Deferred_Req___VARIANT_1
+      by solve( !CI_ReqEncSk( $CI, ~skR_CI ) ▶₁ #i )
+    next
+      case c_pk
+      solve( !CI_ReqEncSk( $CI, ~skR_CI ) ▶₁ #i )
+        case CI_Publish_RequestEncKey
+        by contradiction /* from formulas */
+      qed
+    qed
+  qed
+qed
+
+lemma c2prime_attack_blocked_v2:
+  all-traces
+  "∀ CI AS WidA WidB pkH_A pkH_B cred AT tid pkE_Adv pkB_Adv pkD sidA sidB
+     #wA #wB #i #r_at #r_dp #r_h.
+    ((((((((((((Wallet_Sent_Cred_Req( WidA, CI, sidA, pkH_A, AT ) @ #wA) ∧
+               (WalletGen_HolderKey( WidB, sidB, pkH_B ) @ #wB)) ∧
+              (CI_Issued_Credential_Fixed( CI, AS, WidA, pkH_B, cred, AT, tid, pkE_Adv,
+                                           pkB_Adv
+               ) @ #i)) ∧
+             (Reveal_StoredAT( WidA, CI, AT ) @ #r_at)) ∧
+            (Reveal_DPoPKey( WidA, pkD ) @ #r_dp)) ∧
+           (Reveal_HolderKey( WidB, pkH_B ) @ #r_h)) ∧
+          (¬(WidA = WidB))) ∧
+         (¬(∃ #r. Reveal_CI( CI ) @ #r))) ∧
+        (¬(∃ #r. Reveal_CI_ReqEncKey( CI ) @ #r))) ∧
+       (¬(∃ p #r. Reveal_WalletBindKey( WidA, p ) @ #r))) ∧
+      (¬(∃ p #r. Reveal_HolderKey( WidA, p ) @ #r))) ∧
+     (¬(∃ p #r. Reveal_WalletEncKey( WidA, p ) @ #r))) ⇒
+    (¬(∃ #k. K( cred ) @ #k))"
+/*
+guarded formula characterizing all counter-examples:
+"∃ CI AS WidA WidB pkH_A pkH_B cred AT tid pkE_Adv pkB_Adv pkD sidA sidB
+   #wA #wB #i #r_at #r_dp #r_h.
+  (Wallet_Sent_Cred_Req( WidA, CI, sidA, pkH_A, AT ) @ #wA) ∧
+  (WalletGen_HolderKey( WidB, sidB, pkH_B ) @ #wB) ∧
+  (CI_Issued_Credential_Fixed( CI, AS, WidA, pkH_B, cred, AT, tid, pkE_Adv,
+                               pkB_Adv
+   ) @ #i) ∧
+  (Reveal_StoredAT( WidA, CI, AT ) @ #r_at) ∧
+  (Reveal_DPoPKey( WidA, pkD ) @ #r_dp) ∧
+  (Reveal_HolderKey( WidB, pkH_B ) @ #r_h)
+ ∧
+  (¬(WidA = WidB)) ∧
+  (∀ #r. (Reveal_CI( CI ) @ #r) ⇒ ⊥) ∧
+  (∀ #r. (Reveal_CI_ReqEncKey( CI ) @ #r) ⇒ ⊥) ∧
+  (∀ p #r. (Reveal_WalletBindKey( WidA, p ) @ #r) ⇒ ⊥) ∧
+  (∀ p #r. (Reveal_HolderKey( WidA, p ) @ #r) ⇒ ⊥) ∧
+  (∀ p #r. (Reveal_WalletEncKey( WidA, p ) @ #r) ⇒ ⊥) ∧
+  (∃ #k. (K( cred ) @ #k))"
+*/
+simplify
+solve( W_HasAT( $Wid, $CI, $AS, ~sid, AT, ~skDPoP, pkDPoP ) ▶₀ #wA )
+  case Wallet_Get_AT
+  solve( !CI_ReqEncPk( $CI, pkR_CI ) ▶₁ #wA )
+    case CI_Publish_RequestEncKey
+    solve( W_HasAT( $Wid.1, $CI.1, $AS.1, ~sid.1, AT, ~skDPoP.2, pkDPoP
+           ) ▶₀ #wB )
+      case Wallet_Get_AT
+      solve( !CI_ReqEncPk( $CI.1, pkR_CI ) ▶₁ #wB )
+        case CI_Publish_RequestEncKey
+        solve( !StoredAT( $Wid, $CI, aToken(~atSecret, pk(~skDPoP), $CI, $AS)
+               ) ▶₀ #r_at )
+          case Wallet_Get_AT
+          solve( !StoredDPoPKey( $Wid, ~skDPoP.1, pkD ) ▶₀ #r_dp )
+            case Wallet_Get_AT
+            solve( !StoredHolderKey( $Wid.1, ~skH, pk(~skH.1) ) ▶₀ #r_h )
+              case Wallet_Send_Credential_Req___VARIANT_1
+              solve( CI_Issued_Credential_Fixed( $CI, AS.4, $Wid, pk(~skH), cred,
+                                                 aToken(~atSecret, pk(~skDPoP), $CI, $AS), tid, pkE_Adv,
+                                                 pkB_Adv
+                     ) @ #i )
+                case CI_Deferred_Endpoint_Fixed___VARIANT_4
+                solve( !CI_ReqEncSk( $CI, ~skR_CI ) ▶₁ #i )
+                  case CI_Publish_RequestEncKey
+                  solve( !CI_PendingTx_Fixed( $CI, tid,
+                                              aToken(~atSecret, pk(~skDPoP), $CI, $AS), $AS.1, $Wid,
+                                              pk(skDPoP_x), pk(~skH), pk(skB_x)
+                         ) ▶₂ #i )
+                    case CI_Credential_Endpoint_Defer___VARIANT_4
+                    solve( !Ltk_CI( $CI, ~ltkCI ) ▶₃ #i )
+                      case Register_CI
+                      solve( !KU( sign(<'credential', $CI, 'PII-dataset', pk(~skH)>, ~ltkCI)
+                             ) @ #vk )
+                        case CI_Deferred_Endpoint_Fixed___VARIANT_4
+                        solve( !KU( penc(<'def-req-fixed', 
+                                          aToken(~atSecret, pk(~skDPoP), $CI, $AS), 
+                                          sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(~skDPoP), jti_d, 
+                                                aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,
+                                               ~skDPoP), 
+                                          ~tid_ci, 'crypt-resp', pkE_Adv, 'tid-bind-sig', 
+                                          sign(<'oid4vci-tid-bind', $CI, ~tid_ci, h(pkE_Adv)>, skB_x)>,
+                                         pk(~skR_CI), rEnc)
+                               ) @ #vk.4 )
+                          case c_penc
+                          solve( !KU( ~tid_ci ) @ #vk.21 )
+                            case CI_Credential_Endpoint_Defer___VARIANT_4
+                            solve( !KU( sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(~skDPoP), 
+                                              jti_d, aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,
+                                             ~skDPoP)
+                                   ) @ #vk.20 )
+                              case c_sign
+                              solve( !KU( ~skDPoP ) @ #vk.32 )
+                                case Reveal_DPoPKey_Rule
+                                solve( !KU( sign(<'oid4vci-tid-bind', $CI, ~tid_ci, h(pkE_Adv)>, skB_x)
+                                       ) @ #vk.31 )
+                                  case c_sign
+                                  solve( !KU( penc(<'credential-req-v2', 
+                                                    aToken(~atSecret, pk(~skDPoP), $CI, $AS), 
+                                                    sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP), 
+                                                          jti_c.2, aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,
+                                                         ~skDPoP), 
+                                                    pk(~skH), 
+                                                    sign(<'openid4vci-proof+jwt-v2', 'ES256', pk(~skH), 
+                                                          h(pk(skB_x)), $CI, iat.2>,
+                                                         ~skH), 
+                                                    'crypt-resp', pk(k.2), 'tid-bind', pk(skB_x)>,
+                                                   pk(~skR_CI), rEnc.3)
+                                         ) @ #vk.16 )
+                                    case c_penc
+                                    solve( !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP), 
+                                                      jti_c.2, aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,
+                                                     ~skDPoP)
+                                           ) @ #vk.55 )
+                                      case c_sign
+                                      solve( !KU( sign(<'openid4vci-proof+jwt-v2', 'ES256', pk(~skH), 
+                                                        h(pk(skB_x)), $CI, iat.2>,
+                                                       ~skH)
+                                             ) @ #vk.64 )
+                                        case c_sign
+                                        solve( !StoredHolderKey( $Wid.1, ~skH.2, pk(~skH) ) ▶₀ #l )
+                                          case Wallet_Send_Credential_Req___VARIANT_1
+                                          solve( !KU( penc(<'def-req-fixed', 
+                                                            aToken(~atSecret.3, pk(~skDPoP.3), $CI, $AS.3), 
+                                                            sign(<'dpop+jwt', $CI, 'POST', 'deferred', 
+                                                                  pk(~skDPoP.3), jti_d.1, 
+                                                                  aToken(~atSecret.3, pk(~skDPoP.3), $CI,
+                                                                         $AS.3)
+                                                                 >,
+                                                                 ~skDPoP.3), 
+                                                            ~tid_ci.1, 'crypt-resp', pk(k.1), 'tid-bind-sig', 
+                                                            sign(<'oid4vci-tid-bind', $CI, ~tid_ci.1, 
+                                                                  h(pk(k.1))>,
+                                                                 skB_x.1)
+                                                           >,
+                                                           pk(~skR_CI), rEnc.4)
+                                                 ) @ #vk.29 )
+                                            case Wallet_Send_Deferred_Req___VARIANT_1
+                                            solve( !StoredWalletEncKey( $Wid_at, ~skE, pk(~skE_W) ) ▶₀ #l.1 )
+                                              case Wallet_Send_Credential_Req___VARIANT_1
+                                              solve( !KU( penc(<'credential-req-v2', 
+                                                                aToken(~atSecret.2, pk(~skDPoP.3), $CI,
+                                                                       $AS.2), 
+                                                                sign(<'dpop+jwt', $CI, 'POST', 'credential', 
+                                                                      pk(~skDPoP.3), jti_c.3, 
+                                                                      aToken(~atSecret.2, pk(~skDPoP.3), $CI,
+                                                                             $AS.2)
+                                                                     >,
+                                                                     ~skDPoP.3), 
+                                                                pk(~skH), 
+                                                                sign(<'openid4vci-proof+jwt-v2', 'ES256', 
+                                                                      pk(~skH), h(pk(~skB.2)), $CI, iat.3>,
+                                                                     ~skH), 
+                                                                'crypt-resp', pkE_W, 'tid-bind', pk(~skB.2)>,
+                                                               pk(~skR_CI), rEnc.5)
+                                                     ) @ #vk.33 )
+                                                case Wallet_Send_Credential_Req___VARIANT_1
+                                                solve( !StoredHolderKey( $Wid_at, ~skH.2, pk(~skH) ) ▶₀ #l.2 )
+                                                  case Wallet_Send_Credential_Req___VARIANT_1
+                                                  solve( !KU( pk(~skDPoP) ) @ #vk.64 )
+                                                    case c_pk
+                                                    solve( !KU( pk(~skH) ) @ #vk.71 )
+                                                      case c_pk
+                                                      solve( !StoredHolderKey( $Wid_at, ~skH.2, pk(~skH)
+                                                             ) ▶₀ #l.3 )
+                                                        case Wallet_Send_Credential_Req___VARIANT_1
+                                                        solve( !KU( penc(<'202-deferred', ~tid_ci.1>,
+                                                                         pk(~skE), rRespEnc.4)
+                                                               ) @ #vk.83 )
+                                                          case CI_Credential_Endpoint_Defer___VARIANT_4
+                                                          solve( !KU( h(pkE_Adv) ) @ #vk.70 )
+                                                            case c_h
+                                                            solve( !KU( h(pk(skB_x)) ) @ #vk.82 )
+                                                              case c_h
+                                                              solve( !KU( pk(k.1) ) @ #vk.75 )
+                                                                case CI_Publish_RequestEncKey
+                                                                solve( !CI_ReqEncSk( $CI.2, ~skR ) ▶₀ #l.4 )
+                                                                  case CI_Publish_RequestEncKey
+                                                                  solve( !KU( pk(skB_x) ) @ #vk.78 )
+                                                                    case CI_Publish_RequestEncKey
+                                                                    solve( !CI_ReqEncSk( $CI.3, ~skR.1
+                                                                           ) ▶₀ #l.5 )
+                                                                      case CI_Publish_RequestEncKey
+                                                                      solve( !KU( aToken(~atSecret,
+                                                                                         pk(~skDPoP), $CI,
+                                                                                         $AS)
+                                                                             ) @ #vk.63 )
+                                                                        case Reveal_StoredAT_Rule
+                                                                        solve( !KU( ~skH ) @ #vk.19 )
+                                                                          case Reveal_HolderKey_Rule
+                                                                          solve( !StoredHolderKey( $Wid_at,
+                                                                                                   ~skH.2,
+                                                                                                   pk(~skH)
+                                                                                 ) ▶₀ #l.6 )
+                                                                            case Wallet_Send_Credential_Req___VARIANT_1
+                                                                            solve( !KU( ~skE ) @ #vk.20 )
+                                                                              case Reveal_WalletEncKey_Rule
+                                                                              solve( !StoredWalletEncKey( $Wid_at,
+                                                                                                          ~skE.1,
+                                                                                                          pk(~skE)
+                                                                                     ) ▶₀ #l.7 )
+                                                                                case Wallet_Send_Credential_Req___VARIANT_1
+                                                                                solve( !KU( ~skR ) @ #vk.26 )
+                                                                                  case Reveal_CI_ReqEncKey_Rule
+                                                                                  solve( !CI_ReqEncSk( $CI.1,
+                                                                                                       ~skR.1
+                                                                                         ) ▶₀ #l.8 )
+                                                                                    case CI_Publish_RequestEncKey
+                                                                                    solve( !KU( ~skR_CI
+                                                                                           ) @ #vk.28 )
+                                                                                      case Reveal_CI_ReqEncKey_Rule
+                                                                                      solve( !CI_ReqEncSk( $CI.3,
+                                                                                                           ~skR.1
+                                                                                             ) ▶₀ #l.9 )
+                                                                                        case CI_Publish_RequestEncKey
+                                                                                        solve( !KU( pk(~skR_CI.1)
+                                                                                               ) @ #vk.63 )
+                                                                                          case CI_Publish_RequestEncKey
+                                                                                          SOLVED // trace found
+                                                                                        qed
+                                                                                      qed
+                                                                                    qed
+                                                                                  qed
+                                                                                qed
+                                                                              qed
+                                                                            qed
+                                                                          qed
+                                                                        qed
+                                                                      qed
+                                                                    qed
+                                                                  qed
+                                                                qed
+                                                              qed
+                                                            qed
+                                                          qed
+                                                        qed
+                                                      qed
+                                                    qed
+                                                  qed
+                                                qed
+                                              qed
+                                            qed
+                                          qed
+                                        qed
+                                      qed
+                                    qed
+                                  qed
+                                qed
+                              qed
+                            qed
+                          qed
+                        qed
+                      qed
+                    qed
+                  qed
+                qed
+              qed
+            qed
+          qed
+        qed
+      qed
+    qed
+  qed
+qed
+
+lemma P10_credential_secrecy_fixed_v2:
+  all-traces
+  "∀ CI AS Wid pkH cred AT tid pkE_new pkB #i.
+    ((((((CI_Issued_Credential_Fixed( CI, AS, Wid, pkH, cred, AT, tid,
+                                      pkE_new, pkB
+          ) @ #i) ∧
+         (¬(∃ #r. Reveal_CI( CI ) @ #r))) ∧
+        (¬(∃ #r. Reveal_CI_ReqEncKey( CI ) @ #r))) ∧
+       (¬(∃ p #r. Reveal_HolderKey( Wid, p ) @ #r))) ∧
+      (¬(∃ p #r. Reveal_WalletEncKey( Wid, p ) @ #r))) ∧
+     (¬(∃ p #r. Reveal_WalletBindKey( Wid, p ) @ #r))) ⇒
+    (¬(∃ #k. K( cred ) @ #k))"
+/*
+guarded formula characterizing all counter-examples:
+"∃ CI AS Wid pkH cred AT tid pkE_new pkB #i.
+  (CI_Issued_Credential_Fixed( CI, AS, Wid, pkH, cred, AT, tid, pkE_new,
+                               pkB
+   ) @ #i)
+ ∧
+  (∀ #r. (Reveal_CI( CI ) @ #r) ⇒ ⊥) ∧
+  (∀ #r. (Reveal_CI_ReqEncKey( CI ) @ #r) ⇒ ⊥) ∧
+  (∀ p #r. (Reveal_HolderKey( Wid, p ) @ #r) ⇒ ⊥) ∧
+  (∀ p #r. (Reveal_WalletEncKey( Wid, p ) @ #r) ⇒ ⊥) ∧
+  (∀ p #r. (Reveal_WalletBindKey( Wid, p ) @ #r) ⇒ ⊥) ∧
+  (∃ #k. (K( cred ) @ #k))"
+*/
+simplify
+solve( CI_Issued_Credential_Fixed( CI, AS, Wid, pkH, cred, AT, tid,
+                                   pkE_new, pkB
+       ) @ #i )
+  case CI_Deferred_Endpoint_Fixed___VARIANT_4
+  solve( !CI_ReqEncSk( $CI, ~skR_CI ) ▶₁ #i )
+    case CI_Publish_RequestEncKey
+    solve( !CI_PendingTx_Fixed( $CI, tid, AT, $AS, $Wid_at, pk(skDPoP_x),
+                                pkH, pk(skB_x)
+           ) ▶₂ #i )
+      case CI_Credential_Endpoint_Defer___VARIANT_4
+      solve( !Ltk_CI( $CI, ~ltkCI ) ▶₃ #i )
+        case Register_CI
+        solve( !KU( sign(<'credential', $CI, 'PII-dataset', pk(skH_x)>, ~ltkCI)
+               ) @ #vk )
+          case CI_Deferred_Endpoint_Fixed___VARIANT_4
+          solve( !KU( penc(<'def-req-fixed', 
+                            aToken(~atSecret, pk(~skDPoP), $CI, $AS), 
+                            sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(~skDPoP), jti_d, 
+                                  aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,
+                                 ~skDPoP), 
+                            ~tid_ci, 'crypt-resp', pkE_new, 'tid-bind-sig', 
+                            sign(<'oid4vci-tid-bind', $CI, ~tid_ci, h(pkE_new)>, skB_x)>,
+                           pk(~skR_CI), rEnc)
+                 ) @ #vk.4 )
+            case c_penc
+            solve( !KU( aToken(~atSecret, pk(~skDPoP), $CI, $AS) ) @ #vk.17 )
+              case Reveal_StoredAT_Rule
+              solve( !KU( ~tid_ci ) @ #vk.21 )
+                case CI_Credential_Endpoint_Defer___VARIANT_4
+                solve( !KU( sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(~skDPoP), 
+                                  jti_d, aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,
+                                 ~skDPoP)
+                       ) @ #vk.20 )
+                  case c_sign
+                  solve( !KU( ~skDPoP ) @ #vk.32 )
+                    case Reveal_DPoPKey_Rule
+                    solve( !KU( sign(<'oid4vci-tid-bind', $CI, ~tid_ci, h(pkE_new)>, skB_x)
+                           ) @ #vk.31 )
+                      case c_sign
+                      solve( !KU( penc(<'credential-req-v2', 
+                                        aToken(~atSecret, pk(~skDPoP), $CI, $AS), 
+                                        sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP), jti_c, 
+                                              aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,
+                                             ~skDPoP), 
+                                        pk(skH_x), 
+                                        sign(<'openid4vci-proof+jwt-v2', 'ES256', pk(skH_x), h(pk(skB_x)), 
+                                              $CI, iat>,
+                                             skH_x), 
+                                        'crypt-resp', pk(k.2), 'tid-bind', pk(skB_x)>,
+                                       pk(~skR_CI), rEnc.1)
+                             ) @ #vk.21 )
+                        case c_penc
+                        solve( !KU( sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP), 
+                                          jti_c, aToken(~atSecret, pk(~skDPoP), $CI, $AS)>,
+                                         ~skDPoP)
+                               ) @ #vk.55 )
+                          case c_sign
+                          solve( !KU( penc(<'def-req-fixed', 
+                                            aToken(~atSecret.1, pk(~skDPoP.1), $CI, $AS.1), 
+                                            sign(<'dpop+jwt', $CI, 'POST', 'deferred', pk(~skDPoP.1), 
+                                                  jti_d.1, aToken(~atSecret.1, pk(~skDPoP.1), $CI, $AS.1)>,
+                                                 ~skDPoP.1), 
+                                            ~tid_ci.1, 'crypt-resp', pk(k.1), 'tid-bind-sig', 
+                                            sign(<'oid4vci-tid-bind', $CI, ~tid_ci.1, h(pk(k.1))>, skB_x.1)>,
+                                           pk(~skR_CI), rEnc.2)
+                                 ) @ #vk.32 )
+                            case Wallet_Send_Deferred_Req___VARIANT_1
+                            solve( !StoredWalletEncKey( $Wid_at.1, ~skE, pk(~skE_W) ) ▶₀ #l )
+                              case Wallet_Send_Credential_Req___VARIANT_1
+                              solve( !KU( penc(<'credential-req-v2', 
+                                                aToken(~atSecret.1, pk(~skDPoP.1), $CI, $AS.1), 
+                                                sign(<'dpop+jwt', $CI, 'POST', 'credential', pk(~skDPoP.1), 
+                                                      jti_c.1, aToken(~atSecret.1, pk(~skDPoP.1), $CI, $AS.1)
+                                                     >,
+                                                     ~skDPoP.1), 
+                                                pk(skH_x), 
+                                                sign(<'openid4vci-proof+jwt-v2', 'ES256', pk(skH_x), 
+                                                      h(pk(~skB)), $CI, iat.1>,
+                                                     skH_x), 
+                                                'crypt-resp', pkE_W, 'tid-bind', pk(~skB)>,
+                                               pk(~skR_CI), rEnc.3)
+                                     ) @ #vk.39 )
+                                case Wallet_Send_Credential_Req___VARIANT_1
+                                solve( !KU( sign(<'openid4vci-proof+jwt-v2', 'ES256', pk(~skH), 
+                                                  h(pk(skB_x)), $CI, iat>,
+                                                 ~skH)
+                                       ) @ #vk.65 )
+                                  case c_sign
+                                  solve( !StoredHolderKey( $Wid_at.1, ~skH.1, pk(~skH) ) ▶₀ #l.1 )
+                                    case Wallet_Send_Credential_Req___VARIANT_1
+                                    solve( !KU( pk(~skDPoP) ) @ #vk.61 )
+                                      case c_pk
+                                      solve( !KU( pk(~skH) ) @ #vk.69 )
+                                        case c_pk
+                                        solve( !StoredHolderKey( $Wid_at.1, ~skH.1, pk(~skH) ) ▶₀ #l.2 )
+                                          case Wallet_Send_Credential_Req___VARIANT_1
+                                          solve( !KU( penc(<'202-deferred', ~tid_ci.1>, pk(~skE), rRespEnc.4)
+                                                 ) @ #vk.79 )
+                                            case CI_Credential_Endpoint_Defer___VARIANT_4
+                                            solve( !KU( h(pkE_new) ) @ #vk.70 )
+                                              case c_h
+                                              solve( !KU( h(pk(skB_x)) ) @ #vk.82 )
+                                                case c_h
+                                                solve( !KU( pk(k.1) ) @ #vk.75 )
+                                                  case CI_Publish_RequestEncKey
+                                                  solve( !CI_ReqEncSk( $CI.1, ~skR ) ▶₀ #l.3 )
+                                                    case CI_Publish_RequestEncKey
+                                                    solve( !KU( pk(skB_x) ) @ #vk.78 )
+                                                      case CI_Publish_RequestEncKey
+                                                      solve( !CI_ReqEncSk( $CI.2, ~skR.1 ) ▶₀ #l.4 )
+                                                        case CI_Publish_RequestEncKey
+                                                        solve( !KU( ~skE ) @ #vk.19 )
+                                                          case Reveal_WalletEncKey_Rule
+                                                          solve( !StoredWalletEncKey( $Wid_at.1, ~skE.1,
+                                                                                      pk(~skE)
+                                                                 ) ▶₀ #l.5 )
+                                                            case Wallet_Send_Credential_Req___VARIANT_1
+                                                            solve( !KU( ~skH ) @ #vk.20 )
+                                                              case Reveal_HolderKey_Rule
+                                                              solve( !StoredHolderKey( $Wid_at.1, ~skH.1,
+                                                                                       pk(~skH)
+                                                                     ) ▶₀ #l.6 )
+                                                                case Wallet_Send_Credential_Req___VARIANT_1
+                                                                solve( !KU( ~skR ) @ #vk.26 )
+                                                                  case Reveal_CI_ReqEncKey_Rule
+                                                                  solve( !CI_ReqEncSk( $CI.1, ~skR.1
+                                                                         ) ▶₀ #l.7 )
+                                                                    case CI_Publish_RequestEncKey
+                                                                    solve( !KU( ~skR_CI ) @ #vk.29 )
+                                                                      case Reveal_CI_ReqEncKey_Rule
+                                                                      solve( !CI_ReqEncSk( $CI.2, ~skR.1
+                                                                             ) ▶₀ #l.8 )
+                                                                        case CI_Publish_RequestEncKey
+                                                                        solve( !KU( pk(~skR_CI.1) ) @ #vk.63 )
+                                                                          case CI_Publish_RequestEncKey
+                                                                          SOLVED // trace found
+                                                                        qed
+                                                                      qed
+                                                                    qed
+                                                                  qed
+                                                                qed
+                                                              qed
+                                                            qed
+                                                          qed
+                                                        qed
+                                                      qed
+                                                    qed
+                                                  qed
+                                                qed
+                                              qed
+                                            qed
+                                          qed
+                                        qed
+                                      qed
+                                    qed
+                                  qed
+                                qed
+                              qed
+                            qed
+                          qed
+                        qed
+                      qed
+                    qed
+                  qed
+                qed
+              qed
+            qed
+          qed
+        qed
+      qed
+    qed
+  qed
+qed
+
+lemma AUTO_typing [sources]:
+  all-traces
+  "(⊤) ∧
+   (∀ x m #i.
+     (AUTO_IN_TERM_1_0_0_1__Wallet_Receive_TxId( m, x ) @ #i) ⇒
+     ((∃ #j. (!KU( x ) @ #j) ∧ (#j < #i)) ∨
+      (∃ #j.
+        (AUTO_OUT_TERM_1_0_0_1__Wallet_Receive_TxId( m ) @ #j) ∧ (#j < #i))))"
+/*
+guarded formula characterizing all counter-examples:
+"∃ x m #i.
+  (AUTO_IN_TERM_1_0_0_1__Wallet_Receive_TxId( m, x ) @ #i)
+ ∧
+  (∀ #j. (!KU( x ) @ #j) ⇒ ¬(#j < #i)) ∧
+  (∀ #j.
+    (AUTO_OUT_TERM_1_0_0_1__Wallet_Receive_TxId( m ) @ #j) ⇒ ¬(#j < #i))"
+*/
+induction
+  case empty_trace
+  by contradiction /* from formulas */
+next
+  case non_empty_trace
+  solve( (last(#i))  ∥
+         (∃ #j. (!KU( x ) @ #j) ∧ (¬(last(#j))) ∧ (#j < #i))  ∥
+         (∃ #j.
+           (AUTO_OUT_TERM_1_0_0_1__Wallet_Receive_TxId( penc(<'202-deferred', x>,
+                                                             pk(~skE_W), rRespEnc)
+            ) @ #j)
+          ∧
+           (¬(last(#j))) ∧ (#j < #i)) )
+    case case_1
+    solve( W_AwaitingTxId_FIXED( $Wid, $CI, $AS, ~sid, AT, ~skH, pkH, ~skE_W,
+                                 pkE_W, ~skB, pkB, ~skDPoP, pkDPoP
+           ) ▶₀ #i )
+      case Wallet_Send_Credential_Req___VARIANT_1
+      solve( !KU( penc(<'202-deferred', x>, pk(~skE_W), rRespEnc) ) @ #vk )
+        case CI_Credential_Endpoint_Defer___VARIANT_4
+        by contradiction /* from formulas */
+      next
+        case Wallet_Send_Deferred_Req___VARIANT_1
+        solve( (∃ #j. (!KU( tid ) @ #j) ∧ (¬(last(#j))) ∧ (#j < #vr.11))  ∥
+               (∃ #j.
+                 (AUTO_OUT_TERM_1_0_0_1__Wallet_Receive_TxId( penc(<'202-deferred', tid>,
+                                                                   pk(~skE_W.1), rRespEnc.1)
+                  ) @ #j)
+                ∧
+                 (¬(last(#j))) ∧ (#j < #vr.11)) )
+          case case_1
+          by contradiction /* cyclic */
+        next
+          case case_2
+          solve( AUTO_OUT_TERM_1_0_0_1__Wallet_Receive_TxId( penc(<'202-deferred', 
+                                                                   tid>,
+                                                                  pk(~skE_W.1), rRespEnc.1)
+                 ) @ #j )
+            case CI_Credential_Endpoint_Defer___VARIANT_4
+            by contradiction /* impossible chain */
+          qed
+        qed
+      next
+        case c_penc
+        by contradiction /* from formulas */
+      qed
+    qed
+  next
+    case case_2
+    by contradiction /* from formulas */
+  next
+    case case_3
+    by contradiction /* from formulas */
+  qed
+qed
+
+/* All wellformedness checks were successful. */
+
+/*
+Generated from:
+Tamarin version 1.12.0
+Maude version 3.5.1
+Git revision: UNKNOWN, branch: UNKNOWN
+Compiled at: 2026-03-08 10:05:47.616272992 UTC
+*/
+
+end

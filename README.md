@@ -111,14 +111,6 @@ A peer-reviewed venue citation will be substituted when the corresponding paper 
 
 ---
 
-## License
-
-<!-- TODO: choose a license. For a formal-methods artifact intended for reuse and citation,
-     a permissive code license (MIT / Apache-2.0) or a research-artifact license (CC-BY-4.0)
-     is typical. Without a license, default copyright applies and others cannot reuse the model. -->
-
----
-
 ## Contact
 
 For questions about the model or the disclosed attack, please open a GitHub issue or contact sekmenmu20@itu.edu.tr.
